@@ -1,0 +1,25 @@
+{
+    "aminoAcids": [
+        { "name": "phenylalanine", "longCode": "Phe", "shortCode": "F", "codons": ["TTT", "TTC"] },
+        { "name": "leucine", "longCode": "Leu", "shortCode": "L", "codons": ["TTA", "TTG", "CTT", "CTC", "CTA", "CTG"] },
+        { "name": "isoleucine", "longCode": "Leu", "shortCode": "I", "codons": ["ATT", "ATC", "ATA"] },
+        { "name": "methionine", "longCode": "Met", "shortCode": "M", "codons": ["ATG"] },
+        { "name": "valine", "longCode": "Val", "shortCode": "V", "codons": ["GTT", "GTC", "GTA", "GTG"] },
+        { "name": "serine", "longCode": "Ser", "shortCode": "S", "codons": ["TCT", "TCC", "TCA", "TCG", "AGT", "AGC"]},
+        { "name": "proline", "longCode": "Pro", "shortCode": "P", "codons": ["CCT", "CCC", "CCA", "CCG"] },
+        { "name": "threonine", "longCode": "Thr", "shortCode": "T", "codons": ["ACT", "ACC", "ACA", "ACG"] },
+        { "name": "alanine", "longCode": "Ala", "shortCode": "A", "codons": ["GCT", "GCC", "GCA", "GCG"] },
+        { "name": "tyrosine", "longCode": "Tyr", "shortCode": "Y", "codons": ["TAT", "TAC"] },
+        { "name": "histidine", "longCode": "His", "shortCode": "H", "codons": ["CAT", "CAC"] },
+        { "name": "glutamine", "longCode": "Gln", "shortCode": "Q", "codons": ["CAA", "CAG"] },
+        { "name": "asparagine", "longCode": "Asn", "shortCode": "N", "codons": ["AAT", "AAC"] },
+        { "name": "lysine", "longCode": "Lys", "shortCode": "K", "codons": ["AAA", "AAG"] },
+        { "name": "aspartic acid", "longCode": "Asp", "shortCode": "D", "codons": ["GAT", "GAC"] },
+        { "name": "glutamic acid", "longCode": "Glu", "shortCode": "E", "codons": ["GAA", "GAG"] },
+        { "name": "cysteine", "longCode": "Cys", "shortCode": "C", "codons": ["TGT", "TGC"] },
+        { "name": "tryptophan", "longCode": "Trp", "shortCode": "W", "codons": ["TGG"] },
+        { "name": "arginine", "longCode": "Arg", "shortCode": "R", "codons": ["CGT", "CGC", "CGA", "CGG", "AGA", "AGG"] },
+        { "name": "glycine", "longCode": "Gly", "shortCode": "G", "codons": ["GGT", "GGC", "GGA", "GGG"] },
+        { "name": "stop codon", "longCode": "Stop", "shortCode": "*", "codons": ["TAA", "TAG", "TGA"] }
+    ]
+}
