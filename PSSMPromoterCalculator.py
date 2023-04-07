@@ -4,12 +4,13 @@ from datetime import datetime
 from Bio.Seq import Seq
 import pssm_util
 
+OUTPUT_FILE_NAME = "PSSMPromoterCalculator"
+
 if __name__ == "__main__":
+
     from dask.distributed import Client, LocalCluster
     cluster = LocalCluster()  # Launches a scheduler and workers locally
     client = Client(cluster)
-
-if __name__ == "__main__":
 
     start_time = datetime.now()
     salis_calc_run_num = 0
@@ -83,8 +84,8 @@ if __name__ == "__main__":
 
     fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df.head(10), 'fwd', 'max', max_min_tx_rate_df)
     #fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df, 'fwd', 'max', max_min_tx_rate_df)
-    #rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df.head(10), 'rev', 'max', max_min_tx_rate_df)
-    rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df, 'rev', 'max', max_min_tx_rate_df)
+    rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df.head(10), 'rev', 'max', max_min_tx_rate_df)
+    #rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df, 'rev', 'max', max_min_tx_rate_df)
 
     fwd_res_df_min = pssm_util.process_df_promoters(fwd_TSS_df.tail(10), 'fwd', 'min', max_min_tx_rate_df)
     #fwd_res_df_min = pssm_util.process_df_promoters(fwd_TSS_df, 'fwd', 'min', max_min_tx_rate_df)
@@ -134,7 +135,7 @@ if __name__ == "__main__":
     new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
 
 
-    res_final_df_min_fwd_df = res_final_df_min.loc[res_final_df_max["direction"] == 'fwd']
+    res_final_df_min_fwd_df = res_final_df_min.loc[res_final_df_min["direction"] == 'fwd']
     new_min_fwd_Tx_rate_df = res_final_df_min_fwd_df.sort_values(by='Tx_rate', ascending=False)
     new_min_fwd_Tx_rate = new_min_fwd_Tx_rate_df['Tx_rate'].tail(1).values[0]
 
@@ -154,7 +155,7 @@ if __name__ == "__main__":
         if float(new_min_fwd_Tx_rate) < float(def_fwd_min_tx_rate):
             print ("can be decreased up to " + str(new_min_fwd_Tx_rate))
             print("using the following promoters:")
-            res_final_df_max_fwd_df.to_csv("SalisLogelPromoterCalculator_MIN_FWD_results.csv", columns = column_list)
+            res_final_df_max_fwd_df.to_csv(OUTPUT_FILE_NAME + "_MIN_FWD_results.csv", columns = column_list)
     else:
         print(" cannot be further decreased")
 
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         if float(new_min_rev_Tx_rate) < float(def_rev_min_tx_rate):
             print ("can be decreased up to " + str(new_min_rev_Tx_rate))
             print("using the following promoters:")
-            res_final_df_max_fwd_df.to_csv("SalisLogelPromoterCalculator_MIN_REV_results.csv", columns = column_list)
+            res_final_df_max_fwd_df.to_csv(OUTPUT_FILE_NAME + "_MIN_REV_results.csv", columns = column_list)
 
     else:
         print(" cannot be further decreased")
@@ -172,7 +173,7 @@ if __name__ == "__main__":
         if float(new_max_fwd_Tx_rate) > float(def_fwd_max_tx_rate):
             print ("can be increased up to " + str(new_max_fwd_Tx_rate))
             print("using the following promoters:")
-            res_final_df_max_fwd_df.to_csv("SalisLogelPromoterCalculator_MAX_FWD_results.csv", columns = column_list)
+            res_final_df_max_fwd_df.to_csv(OUTPUT_FILE_NAME + "_MAX_FWD_results.csv", columns = column_list)
 
     else:
         print(" cannot be further increased")
@@ -182,7 +183,7 @@ if __name__ == "__main__":
         if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
             print ("can be increased up to " + str(new_max_rev_Tx_rate))
             print("using the following promoters:")
-            res_final_df_max_fwd_df.to_csv("SalisLogelPromoterCalculator_MAX_REV_results.csv", columns = column_list)
+            res_final_df_max_fwd_df.to_csv(OUTPUT_FILE_NAME + "_MAX_REV_results.csv", columns = column_list)
 
     else:
         print(" cannot be further increased")

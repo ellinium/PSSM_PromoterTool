@@ -1,7 +1,8 @@
 #takes a sequence and runs it through Salis Promoter Calculator
 #gets 1000 Tx_rate records as output
-#takes 5 records with top and bottom Tx_rate values
-#for each records finds all synonymous (AA) promoters and calculate PSSM for them
+#saves 1 record with max and min Tx_rate values
+#takes 10 records with max and min Tx_rate values
+#for each -35 -10 pair finds all synonymous (AA) promoters and calculate PSSM for them
 #takes top and bottom 10 promoters
 #re-runs Salis' calc with those promoters (replaces hex35 + spacer + hex10 sequence in the main sequence)
 #add original record info and all synonymous outputs into a csv file
@@ -19,10 +20,12 @@ from ast import literal_eval
 import pssm_util as pu
 import dask.dataframe as dd
 
-if __name__ == "__main__":
-    from dask.distributed import Client, LocalCluster
-    cluster = LocalCluster()  # Launches a scheduler and workers locally
-    client = Client(cluster)
+#import multiprocessing
+
+# if __name__ == "__main__":
+#     from dask.distributed import Client, LocalCluster
+#     cluster = LocalCluster()  # Launches a scheduler and workers locally
+#     client = Client(cluster)
 
 
 #ET: get all TSS results for a sequence -> get top 5 and bottom 5 Tx rate
@@ -603,26 +606,14 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
 
 def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rate_df):
     #print(row)
+
     TSS_res_df = pd.DataFrame()
     prom_35_aa_str = str(row['AA_Promoter_35'])
     prom_10_aa_str = str(row['AA_Promoter_10'])
-    match_35_primers_df = df_35_perm_prom.loc[df_35_perm_prom['Promoters_perm_aa'] == prom_35_aa_str]
-    match_10_primers_df = df_10_perm_prom.loc[df_10_perm_prom['Promoters_perm_aa'] == prom_10_aa_str]
+    match_35_primers_df = df_35_perm_prom.loc[df_35_perm_prom['Promoters_perm_aa'].values == prom_35_aa_str]
+    match_10_primers_df = df_10_perm_prom.loc[df_10_perm_prom['Promoters_perm_aa'].values == prom_10_aa_str]
     match_35_primers_df['ID'] = row['TSS']
     match_10_primers_df['ID'] = row['TSS']
-
-    # take top 5 and re-calculate TSS for each
-    # if(range == 'top'):
-    #     #match_35_primers_df_5 = match_35_primers_df.head(10)
-    #     match_35_primers_df_5 = match_35_primers_df
-    #     #match_10_primers_df_5 = match_10_primers_df.head(10)
-    #     match_10_primers_df_5 = match_10_primers_df
-    #
-    # if(range == 'bot'):
-    #     #match_35_primers_df_5 = match_35_primers_df.tail(10)
-    #     match_35_primers_df_5 = match_35_primers_df
-    #    # match_10_primers_df_5 = match_10_primers_df.tail(10)
-    #     match_10_primers_df_5 = match_10_primers_df
 
     match_35_primers_df = match_35_primers_df.rename(columns={'Promoters_perm_nt': 'hex35'})
     match_35_primers_df = match_35_primers_df.rename(columns={'PSSM_Promoters_perm': 'PSSM_Promoters_perm_35'})
@@ -657,15 +648,19 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
 
     # SUBSTITUTIONS
     # TODO: optimise
+    print("len(top_primers_df) = " + str(len(top_primers_df)))
+    print(dir_type)
+    print(range)
+    #dask_top_primers_df = dd.from_pandas(top_primers_df, npartitions=30)
     dask_top_primers_df = dd.from_pandas(top_primers_df, npartitions=30)
     TSS_res_primers_df = dask_top_primers_df.map_partitions(lambda df: df.apply(lambda x: run_salis_calc(row, x, original_prom_sequence, dir_type, range, tx_rate_df), axis=1), meta=pd.Series(dtype='object')).compute()
 
-    #TSS_res_primers_df = top_primers_df.apply(lambda x: run_salis_calc(row, x, original_prom_sequence, dir_type, range),
-    #                                          axis=1)
+    ##TSS_res_primers_df = top_primers_df.apply(lambda x: run_salis_calc(row, x, original_prom_sequence, dir_type, range, tx_rate_df), axis=1)
     TSS_res_primers_df = pd.concat(TSS_res_primers_df.tolist())
 
     #filter by ITR
-    TSS_res_primers_df = TSS_res_primers_df.loc[TSS_res_primers_df['ITR'] == row['ITR']]
+    ##TSS_res_primers_df = TSS_res_primers_df.loc[TSS_res_primers_df['ITR'] == row['ITR']]
+    TSS_res_primers_df = TSS_res_primers_df.loc[TSS_res_primers_df['ITR'].values == row['ITR']]
 
 
     #match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate()))
@@ -678,9 +673,7 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
 
 
 def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rate_df):
-    tss_fwd_df = pd.DataFrame()
-    tss_rev_df = pd.DataFrame()
-    TSS_res_df = pd.DataFrame()
+
     #filer 35 and 10 by AA_Promoter_35, AA_Promoter_10 - aa sequence match
     #for each row find top values for 35 and 10 they should be > than the original values PSSM_Score_10 and PSSM_Score_35
 
@@ -746,9 +739,64 @@ def process_df_promoters(df, direction_type, type, tx_rate_df):
     # we need to add all synonymous codon combination for -35 and -10, then calculate their PSSM
     df_35_perm_prom_top, df_10_perm_prom_top = process_promoters_aa(df)
 
+    df_35_perm_prom_top = df_35_perm_prom_top.drop_duplicates()
+    df_10_perm_prom_top = df_10_perm_prom_top.drop_duplicates()
+
+    df_35_perm_prom_top = df_35_perm_prom_top.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
+    df_10_perm_prom_top = df_10_perm_prom_top.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
+
     res_df = substitute_promoters(df, df_35_perm_prom_top, df_10_perm_prom_top, direction_type, type, tx_rate_df)
 
     #rename ID to Parent_ID column
     res_df = res_df.rename(columns={'ID': 'Parent_ID'})
 
     return res_df
+
+
+# def show_output(output_file, final_df, direction, type, max_min_df, new_min_fwd_Tx_rate, new_min_fwd_Tx_rate):
+#
+#     column_list = ["new_sequence", "promoter_sequence", "TSS", "Tx_rate", "UP", "hex35", "PSSM_hex35", "AA_hex35", "spacer", "hex10", "PSSM_hex10", "AA_hex10", "disc", "ITR", "dG_total", "dG_10", "dG_35", "dG_disc", "dG_ITR", "dG_ext10", "dG_spacer", "dG_UP", "dG_bind",  "UP_position", "hex35_position", "spacer_position", "hex10_position", "disc_position"]
+#
+#     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
+#     new_max_fwd_Tx_rate_df = res_final_df_max_fwd_df.sort_values(by='Tx_rate', ascending=False)
+#     new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
+#
+#
+#     dir = ""
+#     action = ""
+#     max_min = ""
+#
+#     if direction == 'fwd':
+#         dir = "forward"
+#
+#     if direction == 'rev':
+#         dir = "reverse"
+#
+#     if type == "max":
+#         action = "increased"
+#         max_min = "maximum"
+#
+#         if direction == 'rev':
+#             def_rev_max_tx_rate = max_min_df['max_rev']
+#         if direction == 'fwd':
+#             def_rev_max_tx_rate = max_min_df['max_fwd']
+#
+#     if type == "min":
+#         action = "decreased"
+#         max_min = "minimum"
+#
+#         if direction == 'rev':
+#             def_rev_max_tx_rate = max_min_df['min_rev']
+#         if direction == 'fwd':
+#             def_rev_max_tx_rate = max_min_df['min_fwd']
+#
+#
+#     print("The " + max_min + " transcription rate for the sequence (" + dir + ") " + str(def_rev_max_tx_rate))
+#     if len(final_df) > 1:
+#         if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
+#             print ("can be " + action + " up to " + str(new_max_rev_Tx_rate))
+#             print("using the following promoters:")
+#             res_final_df_max_fwd_df.to_csv(output_file, columns = column_list)
+#
+#     else:
+#         print(" cannot be further increased")
