@@ -8,12 +8,27 @@ The output CSV file/files contain synonymous codon promoters and sequence motifs
 
 INSTALLATION:
 
+1. Install required libraries using pip:
+```
+pip install pssm-promoter-tool
+```
+
+2. Download and unpack the archive with files using "Code"->"Download ZIP" buttons in the right corner at https://github.com/ellinium/pssm_promoter_tool. 
+Or use
+```
+git clone https://github.com/ellinium/pssm-promoter-tool
+```
+
+
+
 USAGE:
 
 The tool requires a text or fasta file with a nucleotide sequence of a gene to process.
+From the folder with the downloaded files run:
 ```
-python3 PSSMPromoterCalculator.py <file_name>
+python pssm_promoter_calculator.py <file_name>
 ```
+where 'file_name' is a path to the file with a gene sequence (TXT or FASTA format).
 
 Depending on the result, up to four output CSV files can be generated:
 1) PSSMPromoterCalculator_MAX_FWD_results.csv - contains promoters to minimise transcription rate (forward strand)
@@ -21,35 +36,35 @@ Depending on the result, up to four output CSV files can be generated:
 3) PSSMPromoterCalculator_MIN_FWD_results.csv - contains promoters to maximise transcription rate (forward strand)
 4) PSSMPromoterCalculator_MIN_REV_results.csv - contains promoters to maximise transcription rate (reverse strand).
 
-The output file fields:
-new_sequence - contains a gene sequence (nt) with substituted promoters. Empty for the original promoters.
-promoter_sequence
-TSS -  transcriptional start site
-Tx_rate - transcription initiation rate
-UP - a 20-nucleotide region that appears upstream of the −35 motif, called the UP element
-hex35 -  an upstream 6-nucleotide site called the −35 motif
-PSSM_hex35 - position-specific scoring matrix value for the -35 motif
-AA_hex35 - an amino acid sequence for the -35 motif
-spacer - a spacer region that separates the −10 and −35 motifs
-hex10 - a downstream 6-nucleotide site called the −10 motif
-PSSM_hex10 - position-specific scoring matrix value for the -10 motif
-AA_hex10 - an amino acid sequence for the -10 motif
-disc - a typically 6-nucleotide region in between the −10 motif and TSS, called the discriminator (Disc)
-ITR - the first 20 transcribed nucleotides, called the initial transcribed region (ITR)
-dG_total
-dG_10
-dG_35
-dG_disc
-dG_ITR
-dG_ext10
-dG_spacer
-dG_UP
-dG_bind
-UP_position
-hex35_position
-spacer_position
-hex10_position
-disc_position
+The output file fields in the CSV files contain data from Salis' Promoter calculator and additional fields:
+1) new_sequence - contains a gene sequence (nt) with substituted promoters. Empty for the original promoters.
+2) promoter_sequence - contains -35 motif, spacer and - 10 motif
+3) TSS -  transcriptional start site
+4) Tx_rate - transcription initiation rate
+5) UP - a 20-nucleotide region that appears upstream of the −35 motif, called the UP element
+6) hex35 -  an upstream 6-nucleotide site called the −35 motif
+7) PSSM_hex35 - position-specific scoring matrix value for the -35 motif
+8) AA_hex35 - an amino acid sequence for the -35 motif
+9) spacer - a spacer region that separates the −10 and −35 motifs
+10) hex10 - a downstream 6-nucleotide site called the −10 motif
+11) PSSM_hex10 - position-specific scoring matrix value for the -10 motif
+12) AA_hex10 - an amino acid sequence for the -10 motif
+13) disc - a typically 6-nucleotide region in between the −10 motif and TSS, called the discriminator (Disc)
+14) ITR - the first 20 transcribed nucleotides, called the initial transcribed region (ITR)
+15) dG_total - total Gibbs free energy for the sequence
+16) dG_10 - -10 motif Gibbs free energy
+17) dG_35 - -35 motif Gibbs free energy
+18) dG_disc - a discriminator Gibbs free energy
+19) dG_ITR - an ITR Gibbs free energy
+20) dG_ext10
+21) dG_spacer - a spacer Gibbs free energy
+22) dG_UP - an UP Gibbs free energy
+23) dG_bind - binding Gibbs free energy
+24) UP_position - a position of the UP element
+25) hex35_position - a position of the -35 motif
+26) spacer_position - a position of the spacer
+27) hex10_position - a position of the -10 motif
+28) disc_position - a position of the discriminator
 
 References:
 
