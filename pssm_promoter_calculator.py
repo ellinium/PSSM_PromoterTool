@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
-from Bio import Seq, SeqIO
+from Bio.Seq import Seq
+from Bio import SeqIO
 import sys
 #For colab
 #from google.colab import files
@@ -24,6 +25,8 @@ def get_gene_sequence():
         gene_sequence = str(records[0].seq)
     else:
         gene_sequence = f_content
+
+    print("processing " + gene_file_name)
     return str.upper(gene_sequence)
 
 
