@@ -593,13 +593,13 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     match_TSS_df = match_TSS_df.loc[TSS_new_res['hex10'] == row_5['hex10']]
 
 
-    match_TSS_df['original_TSS'] = 'No'
+    match_TSS_df['original_record'] = 'No'
     match_TSS_df['direction'] = dir_type
     ###match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate()))
     ###match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate()))
     match_TSS_df = match_TSS_df.sort_values(by=['Tx_rate'], ascending=False)
     match_TSS_df['ID'] = row['TSS']
-    match_TSS_df['new_sequence'] = new_sequence
+    match_TSS_df['new_gene_sequence'] = new_sequence
 
     #TSS_res_df = TSS_res_df.append(match_TSS_df, ignore_index=True, sort=False)
     return match_TSS_df
@@ -639,7 +639,7 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
     #print("ORIGINAL VALUES")
     #print('original TSS: ' + str(original_TSS) + ', original promoters: -35:' + row['hex35'] + ' 35_AA' + row[
     #    'AA_Promoter_35'] + ', -10:' + str(row['hex10']) + ', aa_10 ' + 'AA_Promoter_10')
-    row['original_TSS'] = 'Yes'
+    row['original_record'] = 'Yes'
     row['direction'] = dir_type
     row['ID'] = row['TSS']
 
@@ -648,9 +648,6 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
 
     # SUBSTITUTIONS
     # TODO: optimise
-    print("len(top_primers_df) = " + str(len(top_primers_df)))
-    print(dir_type)
-    print(range)
     #dask_top_primers_df = dd.from_pandas(top_primers_df, npartitions=30)
     dask_top_primers_df = dd.from_pandas(top_primers_df, npartitions=30)
     TSS_res_primers_df = dask_top_primers_df.map_partitions(lambda df: df.apply(lambda x: run_salis_calc(row, x, original_prom_sequence, dir_type, range, tx_rate_df), axis=1), meta=pd.Series(dtype='object')).compute()

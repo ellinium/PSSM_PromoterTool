@@ -1,5 +1,4 @@
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from Bio.Seq               import Seq
 from scipy                 import stats
 import numpy as np
 

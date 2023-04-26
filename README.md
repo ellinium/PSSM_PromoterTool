@@ -22,6 +22,34 @@ Depending on the result, up to four output CSV files can be generated:
 4) PSSMPromoterCalculator_MIN_REV_results.csv - contains promoters to maximise transcription rate (reverse strand).
 
 The output file fields:
+new_sequence - contains a gene sequence (nt) with substituted promoters. Empty for the original promoters.
+promoter_sequence
+TSS -  transcriptional start site
+Tx_rate - transcription initiation rate
+UP - a 20-nucleotide region that appears upstream of the −35 motif, called the UP element
+hex35 -  an upstream 6-nucleotide site called the −35 motif
+PSSM_hex35 - position-specific scoring matrix value for the -35 motif
+AA_hex35 - an amino acid sequence for the -35 motif
+spacer - a spacer region that separates the −10 and −35 motifs
+hex10 - a downstream 6-nucleotide site called the −10 motif
+PSSM_hex10 - position-specific scoring matrix value for the -10 motif
+AA_hex10 - an amino acid sequence for the -10 motif
+disc - a typically 6-nucleotide region in between the −10 motif and TSS, called the discriminator (Disc)
+ITR - the first 20 transcribed nucleotides, called the initial transcribed region (ITR)
+dG_total
+dG_10
+dG_35
+dG_disc
+dG_ITR
+dG_ext10
+dG_spacer
+dG_UP
+dG_bind
+UP_position
+hex35_position
+spacer_position
+hex10_position
+disc_position
 
 References:
 

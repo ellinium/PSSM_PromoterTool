@@ -1,8 +1,7 @@
-import random
 import pandas as pd
 from datetime import datetime
 from Bio import Seq, SeqIO
-import sys, os
+import sys
 #For colab
 #from google.colab import files
 ##sys.path.append(os.path.abspath('PSSM_PromoterTool/'))
