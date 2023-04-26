@@ -6,6 +6,8 @@ The tool applies CORPSE (Codon Restrained Promoter Silencing) method and inverte
 Position-specific scoring matrix (PSSM) is applied to all the synonymous codon variants of the promoters associated with the lowest and highest transcription rates in order to maximally decrease (CORPSE) or increase the transcription rate (iCORPSE).
 The output CSV file/files contain synonymous codon promoters and sequence motifs for the minimal and maximal transcriptional rates along with the non-canonical sequence motifs for forward and reverse strands.
 
+For a web (Google Colab) version, please navigate to https://colab.research.google.com/drive/171iBNCrA1hMS-LpX_qaFani34HiueTZO?usp=sharing.
+
 INSTALLATION:
 
 1. Install required libraries using pip:
@@ -56,7 +58,7 @@ The output file fields in the CSV files contain data from Salis' Promoter calcul
 17) dG_35 - -35 motif Gibbs free energy
 18) dG_disc - a discriminator Gibbs free energy
 19) dG_ITR - an ITR Gibbs free energy
-20) dG_ext10
+20) dG_ext10 −10 extended motif Gibbs free energy
 21) dG_spacer - a spacer Gibbs free energy
 22) dG_UP - an UP Gibbs free energy
 23) dG_bind - binding Gibbs free energy
