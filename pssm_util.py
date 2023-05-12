@@ -749,6 +749,12 @@ def process_df_promoters(df, direction_type, type, tx_rate_df):
 
     return res_df
 
+def add_txrate_foldchange_col(df, rate):
+    df_copy = df.copy()
+    df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate']/rate.astype(float)
+    #df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate'].apply(lambda x: x.astype(float).round(2))
+    df_copy['Tx_rate_FoldChange'] =  df_copy['Tx_rate_FoldChange'].astype(float).round(2)
+    return df_copy
 
 # def show_output(output_file, final_df, direction, type, max_min_df, new_min_fwd_Tx_rate, new_min_fwd_Tx_rate):
 #
