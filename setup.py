@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pssm-promoter-tool',
-      version='1.0.0',
-      description='The tools applies direct and inverted Codon Restrained Promoter Silencing method to the provided gene sequence',
+      version='1.0.2',
+      description='The tool applies direct and inverted Codon Restrained Promoter Silencing method to the provided gene sequence',
       long_description=long_description,
       long_description_content_type='text/markdown',
       url='https://github.com/ellinium/PSSM_PromoterTool',
@@ -17,6 +17,9 @@ setup(name='pssm-promoter-tool',
                         'scikit-learn', 'scipy', 'six', 'sortedcontainers', 'tblib', 'threadpoolctl', 'toolz', 'tornado', 'urllib3',
                         'zict', 'zipp'],
       py_modules=['pssm_promoter_calculator'],
+      #include_package_data = True,
+      #package_data={
+      #    '': ['../free_energy_coeffs.npy', '../model_intercept.npy']},
       zip_safe=False,
       keywords='promoter prediction transcription rate')
 

@@ -188,7 +188,6 @@ if __name__ == "__main__":
             print("using the promoters in the " + min_fwd_output_file)
             #res_final_df_min_fwd_df['Tx_rate_FoldChange'] = res_final_df_min_fwd_df['Tx_rate'].copy()/def_fwd_min_tx_rate.astype(float)
             res_final_df_min_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_fwd_df,def_fwd_min_tx_rate)
-
             res_final_df_min_fwd_df.to_csv(min_fwd_output_file, columns = column_list, float_format='%.2f')
 
             ##files.download(min_fwd_output_file)
@@ -203,7 +202,6 @@ if __name__ == "__main__":
         if float(new_min_rev_Tx_rate) < float(def_rev_min_tx_rate):
             print ("can be decreased up to " + str(new_min_rev_Tx_rate))
             print("using the promoters in the " + min_rev_output_file)
-            #res_final_df_min_rev_df['Tx_rate_FoldChange'] = (res_final_df_min_rev_df['Tx_rate'].copy()/def_rev_min_tx_rate.astype(float).round(2))
             res_final_df_min_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_rev_df,def_rev_min_tx_rate)
             res_final_df_min_rev_df.to_csv(min_rev_output_file, columns = column_list, float_format='%.2f')
 
@@ -219,7 +217,6 @@ if __name__ == "__main__":
         if float(new_max_fwd_Tx_rate) > float(def_fwd_max_tx_rate):
             print ("can be increased up to " + str(new_max_fwd_Tx_rate))
             print("using the promoters in the " + max_fwd_output_file)
-            #res_final_df_max_fwd_df['Tx_rate_FoldChange'] = (res_final_df_max_fwd_df['Tx_rate'].copy()/def_fwd_max_tx_rate.astype(float).round(2))
             res_final_df_max_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_fwd_df,def_fwd_max_tx_rate)
 
             res_final_df_max_fwd_df.to_csv(max_fwd_output_file, columns = column_list, float_format='%.2f')
@@ -234,10 +231,9 @@ if __name__ == "__main__":
         if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
             print ("can be increased up to " + str(new_max_rev_Tx_rate))
             print("using the promoters in the " + max_rev_output_file)
-            #res_final_df_max_rev_df['Tx_rate_FoldChange'] = round(res_final_df_max_rev_df['Tx_rate'].copy()/float(def_rev_max_tx_rate),2)
             res_final_df_max_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_rev_df,def_rev_max_tx_rate)
 
-            res_final_df_max_rev_df.to_csv(max_rev_output_file, columns = column_list)
+            res_final_df_max_rev_df.to_csv(max_rev_output_file, columns = column_list, float_format='%.2f')
             ##files.download(max_rev_output_file)
 
     else:

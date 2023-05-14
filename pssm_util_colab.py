@@ -744,7 +744,12 @@ def process_df_promoters(df, direction_type, type, tx_rate_df):
 
     return res_df
 
-
+def add_txrate_foldchange_col(df, rate):
+    df_copy = df.copy()
+    df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate']/rate.astype(float)
+    #df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate'].apply(lambda x: x.astype(float).round(2))
+    df_copy['Tx_rate_FoldChange'] =  df_copy['Tx_rate_FoldChange'].astype(float).round(2)
+    return df_copy
 # def show_output(output_file, final_df, direction, type, max_min_df, new_min_fwd_Tx_rate, new_min_fwd_Tx_rate):
 #
 #     column_list = ["new_sequence", "promoter_sequence", "TSS", "Tx_rate", "UP", "hex35", "PSSM_hex35", "AA_hex35", "spacer", "hex10", "PSSM_hex10", "AA_hex10", "disc", "ITR", "dG_total", "dG_10", "dG_35", "dG_disc", "dG_ITR", "dG_ext10", "dG_spacer", "dG_UP", "dG_bind",  "UP_position", "hex35_position", "spacer_position", "hex10_position", "disc_position"]
