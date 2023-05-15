@@ -33,10 +33,10 @@ python pssm_promoter_calculator.py <file_name>
 where 'file_name' is a path to the file with a gene sequence (TXT or FASTA format).
 
 Depending on the result, up to four output CSV files can be generated:
-1) PSSMPromoterCalculator_MAX_FWD_results.csv - contains promoters to minimise transcription rate (forward strand)
-2) PSSMPromoterCalculator_MAX_REV_results.csv - contains promoters to minimise transcription rate (reverse strand)
-3) PSSMPromoterCalculator_MIN_FWD_results.csv - contains promoters to maximise transcription rate (forward strand)
-4) PSSMPromoterCalculator_MIN_REV_results.csv - contains promoters to maximise transcription rate (reverse strand).
+1) PSSMPromoterCalculator_MIN_FWD_results.csv - contains promoters to minimise transcription rate (forward strand)
+2) PSSMPromoterCalculator_MIN_REV_results.csv - contains promoters to minimise transcription rate (reverse strand)
+3) PSSMPromoterCalculator_MAX_FWD_results.csv - contains promoters to maximise transcription rate (forward strand)
+4) PSSMPromoterCalculator_MAX_REV_results.csv - contains promoters to maximise transcription rate (reverse strand).
 
 The output file fields in the CSV files contain data from Salis' Promoter calculator and additional fields:
 1) new_sequence - contains a gene sequence (nt) with substituted promoters. Empty for the original promoters.
