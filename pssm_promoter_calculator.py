@@ -77,7 +77,7 @@ if __name__ == "__main__":
     rev_TSS_df['AA_Promoter_10'] = rev_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate()))
     rev_TSS_df = rev_TSS_df[rev_TSS_df['AA_Promoter_10'].str.contains('*', regex = False) == False]
 
-    #TOP 5 Tx_rate revords
+    #TOP 5 Tx_rate records / Top1
     max_fwd_TSS_df = fwd_TSS_df.head(1)
     def_fwd_max_tx_rate = max_fwd_TSS_df['Tx_rate'].values[0]
 
@@ -120,11 +120,15 @@ if __name__ == "__main__":
 
 
     #TODO:  keep original_TSS
-    max_fwd_TSS_df = fwd_res_df_max.loc[fwd_res_df_max['Tx_rate'].astype(float) >= float(def_fwd_max_tx_rate)]
-    max_rev_TSS_df = rev_res_df_max.loc[rev_res_df_max['Tx_rate'].astype(float) >= float(def_rev_max_tx_rate)]
+    #max_fwd_TSS_df = fwd_res_df_max.loc[fwd_res_df_max['Tx_rate'].astype(float) >= float(def_fwd_max_tx_rate)]
+    max_fwd_TSS_df = fwd_res_df_max.loc[fwd_res_df_max['Tx_rate'].astype(float) <= float(def_fwd_max_tx_rate)]
+    #max_rev_TSS_df = rev_res_df_max.loc[rev_res_df_max['Tx_rate'].astype(float) >= float(def_rev_max_tx_rate)]
+    max_rev_TSS_df = rev_res_df_max.loc[rev_res_df_max['Tx_rate'].astype(float) <= float(def_rev_max_tx_rate)]
 
-    min_fwd_TSS_df = fwd_res_df_min.loc[fwd_res_df_min['Tx_rate'].astype(float) <= float(def_fwd_min_tx_rate)]
-    min_rev_TSS_df = rev_res_df_min.loc[rev_res_df_min['Tx_rate'].astype(float) <= float(def_rev_min_tx_rate)]
+    #min_fwd_TSS_df = fwd_res_df_min.loc[fwd_res_df_min['Tx_rate'].astype(float) <= float(def_fwd_min_tx_rate)]
+    min_fwd_TSS_df = fwd_res_df_min.loc[fwd_res_df_min['Tx_rate'].astype(float) >= float(def_fwd_min_tx_rate)]
+    #min_rev_TSS_df = rev_res_df_min.loc[rev_res_df_min['Tx_rate'].astype(float) <= float(def_rev_min_tx_rate)]
+    min_rev_TSS_df = rev_res_df_min.loc[rev_res_df_min['Tx_rate'].astype(float) >= float(def_rev_min_tx_rate)]
 
     res_final_df_max = pd.concat([max_fwd_TSS_df, max_rev_TSS_df], ignore_index=True, sort=False)
     res_final_df_min = pd.concat([min_fwd_TSS_df, min_rev_TSS_df], ignore_index=True, sort=False)
@@ -158,33 +162,68 @@ if __name__ == "__main__":
 
     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
     new_max_fwd_Tx_rate_df = res_final_df_max_fwd_df.sort_values(by='Tx_rate', ascending=False)
-    new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
+    #new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
+    new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].tail(1).values[0]
 
 
     res_final_df_min_fwd_df = res_final_df_min.loc[res_final_df_min["direction"] == 'fwd']
     new_min_fwd_Tx_rate_df = res_final_df_min_fwd_df.sort_values(by='Tx_rate', ascending=False)
-    new_min_fwd_Tx_rate = new_min_fwd_Tx_rate_df['Tx_rate'].tail(1).values[0]
+    #new_min_fwd_Tx_rate = new_min_fwd_Tx_rate_df['Tx_rate'].tail(1).values[0]
+    new_min_fwd_Tx_rate = new_min_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
 
 
     res_final_df_max_rev_df = res_final_df_max.loc[res_final_df_max["direction"] == 'rev']
     new_max_rev_Tx_rate_df = res_final_df_max_rev_df.sort_values(by='Tx_rate', ascending=False)
-    new_max_rev_Tx_rate = new_max_rev_Tx_rate_df['Tx_rate'].head(1).values[0]
+    #new_max_rev_Tx_rate = new_max_rev_Tx_rate_df['Tx_rate'].head(1).values[0]
+    new_max_rev_Tx_rate = new_max_rev_Tx_rate_df['Tx_rate'].tail(1).values[0]
 
     res_final_df_min_rev_df = res_final_df_min.loc[res_final_df_min["direction"] == 'rev']
     new_min_rev_Tx_rate_df = res_final_df_min_rev_df.sort_values(by='Tx_rate', ascending=False)
-    new_min_rev_Tx_rate = new_min_rev_Tx_rate_df['Tx_rate'].tail(1).values[0]
+    #new_min_rev_Tx_rate = new_min_rev_Tx_rate_df['Tx_rate'].tail(1).values[0]
+    new_min_rev_Tx_rate = new_min_rev_Tx_rate_df['Tx_rate'].head(1).values[0]
 
     column_list = ["new_gene_sequence", "promoter_sequence", "TSS", "Tx_rate", "Tx_rate_FoldChange", "UP", "hex35", "PSSM_hex35", "AA_hex35", "spacer", "hex10", "PSSM_hex10", "AA_hex10", "disc", "ITR", "dG_total", "dG_10", "dG_35", "dG_disc", "dG_ITR", "dG_ext10", "dG_spacer", "dG_UP", "dG_bind",  "UP_position", "hex35_position", "spacer_position", "hex10_position", "disc_position"]
 
     ##max_fwd_TSS_df = fwd_res_df_max.loc[fwd_res_df_max['Tx_rate'].astype(float)
     ##max_fwd_TSS_df = fwd_res_df_max.loc[fwd_res_df_max['Tx_rate'].astype(float) >= float(def_fwd_max_tx_rate)]
 
+    print("The maximum transcription rate for the sequence (forward) is " + str(def_fwd_max_tx_rate))
+    if len(res_final_df_max_fwd_df) > 1:
+        max_fwd_output_file = OUTPUT_FILE_NAME + "_MAX_FWD_results.csv"
+        #if float(new_max_fwd_Tx_rate) > float(def_fwd_max_tx_rate):
+        if float(new_max_fwd_Tx_rate) < float(def_fwd_max_tx_rate):
+            print ("can be decreased up to " + str(new_max_fwd_Tx_rate))
+            print("using the promoters in the " + max_fwd_output_file)
+            res_final_df_max_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_fwd_df,def_fwd_max_tx_rate)
+
+            res_final_df_max_fwd_df.to_csv(max_fwd_output_file, columns = column_list, float_format='%.2f')
+            ##files.download(max_fwd_output_file)
+
+    else:
+        print(" cannot be further decreased")
+    print("\n")
+    print("The maximum transcription rate for the sequence (reverse) is " + str(def_rev_max_tx_rate))
+    if len(res_final_df_max_rev_df) > 1:
+        max_rev_output_file = OUTPUT_FILE_NAME + "_MAX_REV_results.csv"
+        #if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
+        if float(new_max_rev_Tx_rate) < float(def_rev_max_tx_rate):
+            print ("can be decreased up to " + str(new_max_rev_Tx_rate))
+            print("using the promoters in the " + max_rev_output_file)
+            res_final_df_max_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_rev_df,def_rev_max_tx_rate)
+
+            res_final_df_max_rev_df.to_csv(max_rev_output_file, columns = column_list, float_format='%.2f')
+            ##files.download(max_rev_output_file)
+
+    else:
+        print(" cannot be further decreased")
+
     print("\n")
     print("The minimum transcription rate for the sequence (forward) is " + str(def_fwd_min_tx_rate))
     if len(res_final_df_min_fwd_df) > 1:
         min_fwd_output_file = OUTPUT_FILE_NAME + "_MIN_FWD_results.csv"
-        if float(new_min_fwd_Tx_rate) < float(def_fwd_min_tx_rate):
-            print ("can be decreased up to " + str(new_min_fwd_Tx_rate))
+        #if float(new_min_fwd_Tx_rate) < float(def_fwd_min_tx_rate):
+        if float(new_min_fwd_Tx_rate) > float(def_fwd_min_tx_rate):
+            print ("can be increased up to " + str(new_min_fwd_Tx_rate))
             print("using the promoters in the " + min_fwd_output_file)
             #res_final_df_min_fwd_df['Tx_rate_FoldChange'] = res_final_df_min_fwd_df['Tx_rate'].copy()/def_fwd_min_tx_rate.astype(float)
             res_final_df_min_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_fwd_df,def_fwd_min_tx_rate)
@@ -193,14 +232,15 @@ if __name__ == "__main__":
             ##files.download(min_fwd_output_file)
 
     else:
-        print(" cannot be further decreased")
+        print(" cannot be further increased")
 
     print("\n")
     print("The minimum transcription rate for the sequence (reverse) is " + str(def_rev_min_tx_rate))
     if len(res_final_df_min_rev_df) > 1:
         min_rev_output_file = OUTPUT_FILE_NAME + "_MIN_REV_results.csv"
-        if float(new_min_rev_Tx_rate) < float(def_rev_min_tx_rate):
-            print ("can be decreased up to " + str(new_min_rev_Tx_rate))
+        #if float(new_min_rev_Tx_rate) < float(def_rev_min_tx_rate):
+        if float(new_min_rev_Tx_rate) > float(def_rev_min_tx_rate):
+            print ("can be increased up to " + str(new_min_rev_Tx_rate))
             print("using the promoters in the " + min_rev_output_file)
             res_final_df_min_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_rev_df,def_rev_min_tx_rate)
             res_final_df_min_rev_df.to_csv(min_rev_output_file, columns = column_list, float_format='%.2f')
@@ -208,36 +248,10 @@ if __name__ == "__main__":
             ##files.download(min_rev_output_file)
 
     else:
-        print(" cannot be further decreased")
+        print(" cannot be further increased")
 
     print("\n")
-    print("The maximum transcription rate for the sequence (forward) is " + str(def_fwd_max_tx_rate))
-    if len(res_final_df_max_fwd_df) > 1:
-        max_fwd_output_file = OUTPUT_FILE_NAME + "_MAX_FWD_results.csv"
-        if float(new_max_fwd_Tx_rate) > float(def_fwd_max_tx_rate):
-            print ("can be increased up to " + str(new_max_fwd_Tx_rate))
-            print("using the promoters in the " + max_fwd_output_file)
-            res_final_df_max_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_fwd_df,def_fwd_max_tx_rate)
 
-            res_final_df_max_fwd_df.to_csv(max_fwd_output_file, columns = column_list, float_format='%.2f')
-            ##files.download(max_fwd_output_file)
-
-    else:
-        print(" cannot be further increased")
-    print("\n")
-    print("The maximum transcription rate for the sequence (reverse) is " + str(def_rev_max_tx_rate))
-    if len(res_final_df_max_rev_df) > 1:
-        max_rev_output_file = OUTPUT_FILE_NAME + "_MAX_REV_results.csv"
-        if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
-            print ("can be increased up to " + str(new_max_rev_Tx_rate))
-            print("using the promoters in the " + max_rev_output_file)
-            res_final_df_max_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_rev_df,def_rev_max_tx_rate)
-
-            res_final_df_max_rev_df.to_csv(max_rev_output_file, columns = column_list, float_format='%.2f')
-            ##files.download(max_rev_output_file)
-
-    else:
-        print(" cannot be further increased")
 
     end_time = datetime.now()
     print('Duration: {}'.format(end_time - start_time))

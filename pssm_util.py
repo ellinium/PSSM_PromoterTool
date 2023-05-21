@@ -303,7 +303,7 @@ class Promoter_Calculator(object):
 
         df_fwd = pd.DataFrame.from_dict(output['Forward_Predictions_per_TSS'], orient = 'index')
         df_rev = pd.DataFrame.from_dict(output['Reverse_Predictions_per_TSS'], orient = 'index')
-        #return output.copy()
+
         return df_fwd, df_rev
 
     # Scan sequence left to right with no TSS information. Calc dG of all possible promoter configurations. Return promoter with minimum dG_total.
@@ -572,15 +572,19 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     if dir_type == 'fwd':
         TSS_new_res = fwd_new_res
         if range == 'max':
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_fwd'])]
+            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_fwd'])]
+            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(tx_rate_df['max_fwd'])]
         if range == 'min':
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_fwd'])]
+            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_fwd'])]
+            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_fwd'])]
     if dir_type == 'rev':
         TSS_new_res = rev_new_res
         if range == 'max':
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_rev'])]
+            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_rev'])]
+            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(tx_rate_df['max_rev'])]
         if range == 'min':
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_rev'])]
+            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_rev'])]
+            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_rev'])]
 
 
     # print(TSS_new_res['Tx_rate'])
@@ -600,6 +604,10 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     match_TSS_df = match_TSS_df.sort_values(by=['Tx_rate'], ascending=False)
     match_TSS_df['ID'] = row['TSS']
     match_TSS_df['new_gene_sequence'] = new_sequence
+
+    match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate()))
+    match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate()))
+
 
     #TSS_res_df = TSS_res_df.append(match_TSS_df, ignore_index=True, sort=False)
     return match_TSS_df
@@ -629,9 +637,11 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
     top_primers_df = top_primers_df.drop_duplicates()
 
     if range == 'max':
-        top_primers_df = top_primers_df.head(10)
-    if range == 'min':
+        #top_primers_df = top_primers_df.head(10)
         top_primers_df = top_primers_df.tail(10)
+    if range == 'min':
+        #top_primers_df = top_primers_df.tail(10)
+        top_primers_df = top_primers_df.head(10)
 
     # ORIGINAL VALUES
     original_prom_sequence = str(row['hex35']) + str(row['spacer']) + str(row['hex10'])
@@ -642,6 +652,7 @@ def match_primers(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rat
     row['original_record'] = 'Yes'
     row['direction'] = dir_type
     row['ID'] = row['TSS']
+    row['new_gene_sequence'] = tx_rate_df['sequence']
 
     #TSS_res_df =TSS_res_df.append(row)
     TSS_res_df = pd.concat([TSS_res_df, row.to_frame().T], ignore_index=True, axis = 0)
@@ -678,7 +689,20 @@ def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type,
     TSS_res_df = TSS_top_df.apply(lambda x: match_primers(x, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rate_df), axis = 1)
     TSS_res_df = pd.concat(TSS_res_df.tolist())
 
-        #for idx, row in TSS_top_df.iterrows():
+    # remove nan gene sequences
+
+    # remove promoters that change the original AA sequence
+    aa_orig_sequence = str(Seq(tx_rate_df['sequence']).translate())
+    TSS_res_df['aa_new_gene_sequence'] = TSS_res_df['new_gene_sequence'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
+    TSS_res_df = TSS_res_df.drop(TSS_res_df[TSS_res_df.aa_new_gene_sequence != aa_orig_sequence].index)
+
+
+    a = 1
+    #     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
+
+    #TSS_res_df_rem = TSS_top_df.apply(lambda x: str(Seq(x).translate())
+
+    #for idx, row in TSS_top_df.iterrows():
 
         #for i, row_5 in top_primers_df.iterrows():
 
@@ -746,7 +770,7 @@ def process_df_promoters(df, direction_type, type, tx_rate_df):
 
     #rename ID to Parent_ID column
     res_df = res_df.rename(columns={'ID': 'Parent_ID'})
-
+    res_df['new_gene_sequence'] = res_df['new_gene_sequence'].replace(pd.nan, tx_rate_df['sequence'])
     return res_df
 
 def add_txrate_foldchange_col(df, rate):
