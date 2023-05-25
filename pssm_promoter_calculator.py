@@ -59,8 +59,10 @@ if __name__ == "__main__":
     #fwd_TSS_df = TSS_results_to_df(output['Forward_Predictions_per_TSS'])
     #rev_TSS_df = TSS_results_to_df(output['Reverse_Predictions_per_TSS'])
 
-    fwd_TSS_df = fwd_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer', 'ITR'], keep='last')
-    rev_TSS_df = rev_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer', 'ITR'], keep='last')
+    ##fwd_TSS_df = fwd_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer', 'ITR'], keep='last')
+    fwd_TSS_df = fwd_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer'], keep='last')
+    ##rev_TSS_df = rev_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer', 'ITR'], keep='last')
+    rev_TSS_df = rev_TSS_df.drop_duplicates(subset=['hex35', 'hex10', 'spacer'], keep='last')
 
     fwd_TSS_df = fwd_TSS_df.sort_values(by = 'Tx_rate', ascending = False)
     rev_TSS_df = rev_TSS_df.sort_values(by = 'Tx_rate', ascending = False)
@@ -111,6 +113,7 @@ if __name__ == "__main__":
 
     #processes 10 records to maximise and 10 to minimise
     #IF PRIMERS ARE DUPLICATED TAKE ONLY with higher/lower tx rate
+
     fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df.tail(12), 'fwd', 'max', max_min_tx_rate_df)
     #fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df, 'fwd', 'max', max_min_tx_rate_df)
     rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df.tail(12), 'rev', 'max', max_min_tx_rate_df)

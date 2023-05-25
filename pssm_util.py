@@ -485,9 +485,9 @@ def findAllPromoterAAPermutations(aa_promoter, aa_dic_df, type):
     for first in firstAA_codons:
         for second in secondAA_codons:
             prom = first + second
-            if prom != aa_promoter:
+            ##if prom != aa_promoter:
                 #exclude the promoter that is being processed
-                perm_prom_list.append(prom)
+            perm_prom_list.append(prom)
 
     perm_prom_pssm_df = pd.DataFrame()
     perm_prom_pssm_df["Promoters_perm_nt"] = perm_prom_list
@@ -565,6 +565,7 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
     TSS_new_res = pd.DataFrame()
 
+
     #print('run salis calc')
     calc = Promoter_Calculator()
     calc.run(new_sequence, TSS_range=[0, len(new_sequence)])
@@ -601,6 +602,7 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     match_TSS_df = TSS_new_res.loc[TSS_new_res['hex35'] == row_5['hex35']]
     match_TSS_df = match_TSS_df.loc[TSS_new_res['hex10'] == row_5['hex10']]
     match_TSS_df = match_TSS_df.loc[TSS_new_res['ITR'] == row['ITR']]
+    match_TSS_df = match_TSS_df.loc[TSS_new_res['spacer'] == row['spacer']]
 
 
     match_TSS_df['Type'] = 'Modified Promoter'
@@ -609,6 +611,7 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     ###match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate()))
     match_TSS_df = match_TSS_df.sort_values(by=['Tx_rate'], ascending=False)
     match_TSS_df['ID'] = row['TSS']
+    match_TSS_df['TSS'] = row['TSS']
     match_TSS_df['new_gene_sequence'] = new_sequence
 
     match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate()))
@@ -786,7 +789,7 @@ def calc_tx_rate_fold(df, res_row):
         parent_tx_rate = parent_txt_rate_df['Tx_rate'].values[0]
         child_tx_rate = res_row['Tx_rate']
 
-        tx_rate_fold =  round((parent_tx_rate/child_tx_rate),2)
+        tx_rate_fold =  round((child_tx_rate/parent_tx_rate),2)
 
     return tx_rate_fold
 
