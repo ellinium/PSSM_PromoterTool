@@ -207,6 +207,7 @@ class Promoter_Calculator(object):
         UPS_HEX35_SPACER = 1
         SPACER_length_range = [15, 21]
         HEX10_length = 6
+        HEX10_length = 6
         DISC_length_range = [6, 11]
         ITR_length = 20
 
@@ -494,7 +495,7 @@ def findAllPromoterAAPermutations(aa_promoter, aa_dic_df, type):
     #calculate_pssm
     perm_prom_pssm_df['PSSM_Promoters_perm'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: calc_PSSM(x, type))
     #add AA sequences
-    perm_prom_pssm_df['Promoters_perm_aa'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: str(Seq(x).translate()))
+    perm_prom_pssm_df['Promoters_perm_aa'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
 
     perm_prom_pssm_df = perm_prom_pssm_df.reindex()
     perm_prom_pssm_df = perm_prom_pssm_df.sort_values(by = 'PSSM_Promoters_perm', ascending = False)
@@ -562,7 +563,21 @@ def findAllPromoterAAPermutations1(AA_promoter):
 def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_df):
     new_prom_sequence = row_5['hex35'] + str(row['spacer']) + row_5['hex10']
     sequence = tx_rate_df["sequence"]
-    new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    sequence_compl = tx_rate_df["sequence_compl"]
+
+    # if(dir_type == 'fwd'):
+    #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    # if(dir_type == 'rev'):
+    #     original_prom_sequence =
+    #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+
+    ##TODO !! For the reverse strand need to replace in the reverse complements strand and take forward results?
+
+    if(dir_type == 'fwd'):
+        new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    if(dir_type == 'rev'):
+        new_sequence = sequence_compl.replace(original_prom_sequence, new_prom_sequence)
+
     TSS_new_res = pd.DataFrame()
 
 
@@ -571,26 +586,15 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     calc.run(new_sequence, TSS_range=[0, len(new_sequence)])
     fwd_new_res, rev_new_res = calc.output()
 
-    if dir_type == 'fwd':
-        TSS_new_res = fwd_new_res
-        if range == 'max':
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_fwd'])]
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(tx_rate_df['max_fwd'])]
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(row['Tx_rate'])]
-        if range == 'min':
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_fwd'])]
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_fwd'])]
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(row['Tx_rate'])]
-    if dir_type == 'rev':
-        TSS_new_res = rev_new_res
-        if range == 'max':
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_rev'])]
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(tx_rate_df['max_rev'])]
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(row['Tx_rate'])]
-        if range == 'min':
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_rev'])]
-            #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_rev'])]
-            TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float((row['Tx_rate']))]
+
+    if range == 'max':
+        #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) >= float(tx_rate_df['max_fwd'])]
+        #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) < float(tx_rate_df['max_fwd'])]
+        TSS_new_res = fwd_new_res.loc[fwd_new_res['Tx_rate'].astype(float) > float(row['Tx_rate'])]
+    if range == 'min':
+        #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) <= float(tx_rate_df['min_fwd'])]
+        #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_fwd'])]
+        TSS_new_res = fwd_new_res.loc[fwd_new_res['Tx_rate'].astype(float) < float(row['Tx_rate'])]
 
 
     # print(TSS_new_res['Tx_rate'])
@@ -614,8 +618,8 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     match_TSS_df['TSS'] = row['TSS']
     match_TSS_df['new_gene_sequence'] = new_sequence
 
-    match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate()))
-    match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate()))
+    match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
+    match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
 
 
     #TSS_res_df = TSS_res_df.append(match_TSS_df, ignore_index=True, sort=False)
@@ -662,8 +666,10 @@ def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_r
     row['Type'] = 'Original Promoter'
     row['direction'] = dir_type
     row['ID'] = row['TSS']
-    row['new_gene_sequence'] = tx_rate_df['sequence']
-
+    if(dir_type == 'fwd'):
+        row['new_gene_sequence'] = tx_rate_df['sequence']
+    elif dir_type == 'rev':
+        row['new_gene_sequence'] = tx_rate_df['sequence_compl']
     #TSS_res_df =TSS_res_df.append(row)
     TSS_res_df = pd.concat([TSS_res_df, row.to_frame().T], ignore_index=True, axis = 0)
 
@@ -703,8 +709,13 @@ def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type,
     # remove nan gene sequences
 
     # remove promoters that change the original AA sequence
-    aa_orig_sequence = str(Seq(tx_rate_df['sequence']).translate())
+    if dir_type == 'fwd':
+        aa_orig_sequence = str(Seq(tx_rate_df['sequence']).translate(table = "Bacterial"))
+    elif dir_type == 'rev':
+        aa_orig_sequence = str(Seq(tx_rate_df['sequence_compl']).translate(table = "Bacterial"))
+
     TSS_res_df['aa_new_gene_sequence'] = TSS_res_df['new_gene_sequence'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
+    TSS_res_df = TSS_res_df.reset_index(drop=True)
     TSS_res_df = TSS_res_df.drop(TSS_res_df[TSS_res_df.aa_new_gene_sequence != aa_orig_sequence].index)
 
     #     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
@@ -781,7 +792,7 @@ def process_df_promoters(df, direction_type, type, tx_rate_df):
     res_df = res_df.rename(columns={'ID': 'Parent_ID'})
     return res_df
 
-def calc_tx_rate_fold(df, res_row):
+def calc_tx_rate_fold(df, res_row, range):
     tx_rate_fold = 1
     if res_row['Type'] == "Modified Promoter":
         TSS_val = res_row['TSS']
@@ -789,18 +800,21 @@ def calc_tx_rate_fold(df, res_row):
         parent_tx_rate = parent_txt_rate_df['Tx_rate'].values[0]
         child_tx_rate = res_row['Tx_rate']
 
-        tx_rate_fold =  round((child_tx_rate/parent_tx_rate),2)
+        if range == 'max':
+            tx_rate_fold =  round((child_tx_rate/parent_tx_rate),2)
+        if range == 'min':
+            tx_rate_fold = round((parent_tx_rate/child_tx_rate), 2)
 
     return tx_rate_fold
 
 #calculate the fold change base on a parent TSS
-def add_txrate_foldchange_col(df, rate):
+def add_txrate_foldchange_col(df, range):
     df_copy = df.copy()
     #df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate']/rate.astype(float)
     #df_copy['Tx_rate_FoldChange'] = df_copy['Tx_rate'].apply(lambda x: x.astype(float).round(2))
     #df_copy['Tx_rate_FoldChange'] =  df_copy['Tx_rate_FoldChange'].astype(float).round(2)
 
-    df_copy['Tx_rate_FoldChange'] = df_copy.apply(lambda x: calc_tx_rate_fold(df, x), axis = 1)
+    df_copy['Tx_rate_FoldChange'] = df_copy.apply(lambda x: calc_tx_rate_fold(df, x, range), axis = 1)
     return df_copy
 
 # def show_output(output_file, final_df, direction, type, max_min_df, new_min_fwd_Tx_rate, new_min_fwd_Tx_rate):

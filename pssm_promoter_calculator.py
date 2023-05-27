@@ -95,7 +95,7 @@ if __name__ == "__main__":
     max_rev_TSS_df = rev_TSS_df.tail(1)
     def_rev_max_tx_rate = max_rev_TSS_df['Tx_rate'].values[0]
 
-    max_min_tx_rate_df = {"sequence": sequence, "max_fwd": def_fwd_max_tx_rate, "max_rev": def_rev_max_tx_rate, "min_fwd": def_fwd_min_tx_rate, "min_rev": def_rev_min_tx_rate}
+    max_min_tx_rate_df = {"sequence": sequence, "sequence_compl": str(Seq(sequence).reverse_complement()), "max_fwd": def_fwd_max_tx_rate, "max_rev": def_rev_max_tx_rate, "min_fwd": def_fwd_min_tx_rate, "min_rev": def_rev_min_tx_rate}
 
     # for (TSS, result) in output['Forward_Predictions_per_TSS'].items():
     #     print("Fwd TSS: %s. TX Rate: %s. Calcs: %s" % (TSS, result['Tx_rate'], str(result) ))
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         if float(new_max_max_fwd_Tx_rate) > float(new_min_max_fwd_Tx_rate):
             print ("can be increased up to " + str(new_max_max_fwd_Tx_rate))
             print(USE_PROMOTERS_OUTPUT + "(" + max_fwd_output_file + ")")
-            res_final_df_max_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_fwd_df,def_fwd_max_tx_rate)
+            res_final_df_max_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_fwd_df, 'max')
 
             res_final_df_max_fwd_df.to_csv(max_fwd_output_file, columns = column_list, float_format='%.2f')
             ##files.download(max_fwd_output_file)
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         if float(new_max_min_rev_Tx_rate) > float(new_min_min_rev_Tx_rate):
             print ("can be increased up to " + str(new_max_min_rev_Tx_rate))
             print(USE_PROMOTERS_OUTPUT + "(" + max_rev_output_file + ")")
-            res_final_df_max_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_rev_df,def_rev_max_tx_rate)
+            res_final_df_max_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_max_rev_df, 'max')
 
             res_final_df_max_rev_df.to_csv(max_rev_output_file, columns = column_list, float_format='%.2f')
             ##files.download(max_rev_output_file)
@@ -237,7 +237,7 @@ if __name__ == "__main__":
             print ("can be decreased up to " + str(new_min_min_fwd_Tx_rate))
             print(USE_PROMOTERS_OUTPUT + "(" + min_fwd_output_file + ")")
             #res_final_df_min_fwd_df['Tx_rate_FoldChange'] = res_final_df_min_fwd_df['Tx_rate'].copy()/def_fwd_min_tx_rate.astype(float)
-            res_final_df_min_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_fwd_df,def_fwd_min_tx_rate)
+            res_final_df_min_fwd_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_fwd_df, 'min')
             res_final_df_min_fwd_df.to_csv(min_fwd_output_file, columns = column_list, float_format='%.2f')
 
             ##files.download(min_fwd_output_file)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
         if float(new_max_min_rev_Tx_rate) > float(new_min_min_rev_Tx_rate):
             print ("can be decreased up to " + str(new_max_min_rev_Tx_rate))
             print(USE_PROMOTERS_OUTPUT + "(" + min_rev_output_file + ")")
-            res_final_df_min_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_rev_df,def_rev_min_tx_rate)
+            res_final_df_min_rev_df = pssm_util.add_txrate_foldchange_col(res_final_df_min_rev_df, 'min')
             res_final_df_min_rev_df.to_csv(min_rev_output_file, columns = column_list, float_format='%.2f')
 
             ##files.download(min_rev_output_file)
