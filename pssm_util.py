@@ -207,7 +207,6 @@ class Promoter_Calculator(object):
         UPS_HEX35_SPACER = 1
         SPACER_length_range = [15, 21]
         HEX10_length = 6
-        HEX10_length = 6
         DISC_length_range = [6, 11]
         ITR_length = 20
 
@@ -649,10 +648,10 @@ def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_r
     top_promoters_df = top_promoters_df.drop_duplicates()
 
     if range == 'max':
-        top_promoters_df = top_promoters_df.head(15)
+        top_promoters_df = top_promoters_df.head(10)
         #top_promoters_df = top_promoters_df.tail(10)
     if range == 'min':
-        top_promoters_df = top_promoters_df.tail(15)
+        top_promoters_df = top_promoters_df.tail(10)
         #top_promoters_df = top_promoters_df.head(10)
 
     # ORIGINAL VALUES

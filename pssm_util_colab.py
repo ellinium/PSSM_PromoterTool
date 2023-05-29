@@ -557,7 +557,19 @@ def findAllPromoterAAPermutations1(AA_promoter):
 def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_df):
     new_prom_sequence = row_5['hex35'] + str(row['spacer']) + row_5['hex10']
     sequence = tx_rate_df["sequence"]
-    new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    sequence_compl = tx_rate_df["sequence_compl"]
+
+    # if(dir_type == 'fwd'):
+    #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    # if(dir_type == 'rev'):
+    #     original_prom_sequence =
+    #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+
+    if(dir_type == 'fwd'):
+        new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+    if(dir_type == 'rev'):
+        new_sequence = sequence_compl.replace(original_prom_sequence, new_prom_sequence)
+
     TSS_new_res = pd.DataFrame()
 
 
