@@ -39,35 +39,36 @@ Depending on the result, up to four output CSV files can be generated:
 4) PSSMPromoterCalculator_MAX_REV_results.csv - contains promoters to maximise transcription rate (reverse strand).
 
 The output file fields in the CSV files contain data from Salis' Promoter calculator and additional fields:
-1) new_sequence - contains a gene sequence (nt) with substituted promoters. Empty for the original promoters.
-2) promoter_sequence - contains -35 motif, spacer and - 10 motif
-3) TSS -  transcriptional start site
-4) Tx_rate - transcription initiation rate
-5) Tx_rate_FoldChange - the fold change between the original transcription rate and re-calculated with PSSM primers
-6) UP - a 20-nucleotide region that appears upstream of the −35 motif, called the UP element 
-7) hex35 -  an upstream 6-nucleotide site called the −35 motif 
-8) PSSM_hex35 - position-specific scoring matrix value for the -35 motif \
-9) AA_hex35 - an amino acid sequence for the -35 motif 
-10) spacer - a spacer region that separates the −10 and −35 motifs 
-11) hex10 - a downstream 6-nucleotide site called the −10 motif 
-12) PSSM_hex10 - position-specific scoring matrix value for the -10 motif 
-13) AA_hex10 - an amino acid sequence for the -10 motif 
-14) disc - a typically 6-nucleotide region in between the −10 motif and TSS, called the discriminator (Disc)
-15) ITR - the first 20 transcribed nucleotides, called the initial transcribed region (ITR)
-16) dG_total - total Gibbs free energy for the sequence 
-17) dG_10 - -10 motif Gibbs free energy 
-18) dG_35 - -35 motif Gibbs free energy 
-19) dG_disc - a discriminator Gibbs free energy 
-20) dG_ITR - an ITR Gibbs free energy 
-21) dG_ext10 −10 extended motif Gibbs free energy 
-22) dG_spacer - a spacer Gibbs free energy 
-23) dG_UP - an UP Gibbs free energy 
-24) dG_bind - binding Gibbs free energy 
-25) UP_position - a position of the UP element 
-26) hex35_position - a position of the -35 motif 
-27) spacer_position - a position of the spacer 
-28) hex10_position - a position of the -10 motif 
-29) disc_position - a position of the discriminator
+1) Type - 'Original Promoter' - for original sequence promoters; 'Modified Promoter' - for synonymous promoters. 
+2) TSS -  transcriptional start site 
+3) Tx_rate - transcription initiation rate 
+4) Tx_rate_FoldChange - the fold change between the original transcription rate and re-calculated with PSSM primers 
+5) hex35 -  an upstream 6-nucleotide site called the −35 motif 
+6) PSSM_hex35 - position-specific scoring matrix value for the -35 motif 
+7) AA_hex35 - an amino acid sequence for the -35 motif 
+8) hex10 - a downstream 6-nucleotide site called the −10 motif 
+9) PSSM_hex10 - position-specific scoring matrix value for the -10 motif 
+10) AA_hex10 - an amino acid sequence for the -10 motif 
+11) UP - a 20-nucleotide region that appears upstream of the −35 motif, called the UP element 
+12) spacer - a spacer region that separates the −10 and −35 motifs 
+13) disc - a typically 6-nucleotide region in between the −10 motif and TSS, called the discriminator (Disc)
+14) ITR - the first 20 transcribed nucleotides, called the initial transcribed region (ITR)
+15) new_gene_sequence - contains a gene sequence (nt) with substituted (Type = 'Modified Promoter') or  original promoters (Type = 'Original Promoter')
+16) promoter_sequence - contains -35 motif, spacer and - 10 motif 
+17) dG_total - total Gibbs free energy for the sequence 
+18) dG_10 - -10 motif Gibbs free energy 
+19) dG_35 - -35 motif Gibbs free energy 
+20) dG_disc - a discriminator Gibbs free energy 
+21) dG_ITR - an ITR Gibbs free energy 
+22) dG_ext10 −10 extended motif Gibbs free energy 
+23) dG_spacer - a spacer Gibbs free energy 
+24) dG_UP - an UP Gibbs free energy 
+25) dG_bind - binding Gibbs free energy 
+26) UP_position - a position of the UP element 
+27) hex35_position - a position of the -35 motif 
+28) spacer_position - a position of the spacer 
+29) hex10_position - a position of the -10 motif 
+30) disc_position - a position of the discriminator
 
 References:
 
