@@ -571,8 +571,6 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     #     original_prom_sequence =
     #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
 
-    ##TODO !! For the reverse strand need to replace in the reverse complements strand and take forward results?
-
     if(dir_type == 'fwd'):
         new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
     if(dir_type == 'rev'):
@@ -651,10 +649,10 @@ def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_r
     top_promoters_df = top_promoters_df.drop_duplicates()
 
     if range == 'max':
-        top_promoters_df = top_promoters_df.head(10)
+        top_promoters_df = top_promoters_df.head(15)
         #top_promoters_df = top_promoters_df.tail(10)
     if range == 'min':
-        top_promoters_df = top_promoters_df.tail(10)
+        top_promoters_df = top_promoters_df.tail(15)
         #top_promoters_df = top_promoters_df.head(10)
 
     # ORIGINAL VALUES
@@ -706,8 +704,6 @@ def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type,
     TSS_res_df = TSS_top_df.apply(lambda x: match_promoters(x, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rate_df), axis = 1)
     TSS_res_df = pd.concat(TSS_res_df.tolist())
 
-    # remove nan gene sequences
-
     # remove promoters that change the original AA sequence
     if dir_type == 'fwd':
         aa_orig_sequence = str(Seq(tx_rate_df['sequence']).translate(table = "Bacterial"))
@@ -732,8 +728,6 @@ def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type,
 #    print(tss_fwd_df.head(5)['hex35'])
 #    print(tss_rev_df.head(5)['hex10'])
 
-
-    #TODO shower only improved values (find MAX tx_rate in the original TSS)
     return TSS_res_df
 
 def TSS_results_to_df(result):
