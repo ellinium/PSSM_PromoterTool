@@ -20,7 +20,7 @@ Or use
 ```
 git clone https://github.com/ellinium/pssm-promoter-tool
 ```
-
+[! you need to have a Git account and be authorised in the system to run the command !]
 
 
 USAGE:
