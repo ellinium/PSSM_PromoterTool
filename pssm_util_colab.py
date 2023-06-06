@@ -22,21 +22,9 @@ import dask.dataframe as dd
 #     cluster = LocalCluster()  # Launches a scheduler and workers locally
 #     client = Client(cluster)
 
-
-#ET: get all TSS results for a sequence -> get top 5 and bottom 5 Tx rate
-# for each find synonymous promoters with the highest PSSM and calc new TSS
-
 # k and BETA for La Fleur dataset
 LOGK   = -2.80271176
 BETA    = 0.81632623
-sequence = ""
-
-max_fwd_TSS_df = 0
-max_rev_TSS_df = 0
-min_fwd_TSS_df = 0
-min_rev_TSS_df = 0
-
-salis_calc_run_num = 0
 
 def unpickler(infile):
     with open(infile, 'rb') as handle:
@@ -298,7 +286,6 @@ class Promoter_Calculator(object):
 
         df_fwd = pd.DataFrame.from_dict(output['Forward_Predictions_per_TSS'], orient = 'index')
         df_rev = pd.DataFrame.from_dict(output['Reverse_Predictions_per_TSS'], orient = 'index')
-        #return output.copy()
         return df_fwd, df_rev
 
     # Scan sequence left to right with no TSS information. Calc dG of all possible promoter configurations. Return promoter with minimum dG_total.
@@ -390,7 +377,7 @@ def process_promoters_nt(promoters_35, promoters_10, spacers_lst):
 
     return pssm_df
 
-def calc_PSSM(row, type_str):
+def calc_PSSM(row, frame, type_str):
 
     # Opening JSON dictionaries
     if type_str == '35':
@@ -399,7 +386,10 @@ def calc_PSSM(row, type_str):
         pssm_dic = json.load(open('PSSM_PromoterTool/pssm_10.json'))['PSSM_10']
 
     pssm_val = 0
-    for i, nt in enumerate(row):
+    frame_row = row
+    if frame != 0:
+        frame_row = row[frame:6 + frame]
+    for i, nt in enumerate(frame_row):
         pssm_index_str = nt + str(i + 1)
         # print(pssm_index_str)
         pssm_val += pssm_dic[pssm_index_str]
@@ -434,38 +424,12 @@ def calculate_pssm(df, type_str):
     df['PSSM_Score_' + type_str] =  PSSM_values
     return df
 
-    # for idx, row in df.iterrows():
-    #     #print (idx)
-    #     #print(df_35[idx])
-    #     #print(row)
-    #     pssm_val = 0
-    #     #TODO do lambda
-    #     for i, nt in enumerate(row):
-    #         #print (i)
-    #         #print (nt)
-    #
-    #         #calc PSSM
-    #         pssm_index_str = nt + str(i+1)
-    #         #print(pssm_index_str)
-    #         pssm_val += pssm_dic[pssm_index_str]
-    #         #print(pssm_dic[pssm_index_str])
-    #     #print('PSSM values = ')
-    #     #print(pssm_val)
-    #     pssm_all_lst.append(round(pssm_val,2))
-
-        #get 1st column all values
-        # for nt in row[1]:
-        #     print (nt)
-        #     #row_35 = rows[1][0]
-        #     #a = 1
-
-    df['PSSM_Score_' + type_str] = pssm_all_lst
-    return df
-
-def findAllPromoterAAPermutations(aa_promoter, aa_dic_df, type):
+def findAllPromoterAAPermutations(aa_promoter, aa_dic_df, type, frame, tx_rate_df, tss):
 
     firstAA = aa_promoter[0]
     secondAA = aa_promoter[1]
+    if len(aa_promoter) == 3:
+        thirdAA = aa_promoter[2]
 
     #print(aa_promoter)
     firstAA_codons = aa_dic_df.loc[aa_dic_df['shortCode'] == firstAA]['codons']
@@ -474,88 +438,171 @@ def findAllPromoterAAPermutations(aa_promoter, aa_dic_df, type):
     secondAA_codons = aa_dic_df.loc[aa_dic_df['shortCode'] == secondAA]['codons']
     secondAA_codons = secondAA_codons.iloc[0]
 
+    if len(aa_promoter) == 3:
+        thirdAA_codons = aa_dic_df.loc[aa_dic_df['shortCode'] == thirdAA]['codons']
+        thirdAA_codons = thirdAA_codons.iloc[0]
+
     #combine AA first and second, find their PSSM and return
     perm_prom_list = list()
-    a = firstAA_codons[0]
     for first in firstAA_codons:
         for second in secondAA_codons:
             prom = first + second
-            if prom != aa_promoter:
+            ##if prom != aa_promoter:
                 #exclude the promoter that is being processed
+            if len(aa_promoter) == 3:
+                for third in thirdAA_codons:
+                    prom = first + second + third
+                    perm_prom_list.append(prom)
+            else:
                 perm_prom_list.append(prom)
 
     perm_prom_pssm_df = pd.DataFrame()
-    perm_prom_pssm_df["Promoters_perm_nt"] = perm_prom_list
+    perm_prom_pssm_df['Promoters_perm_nt'] = perm_prom_list
     #calculate_pssm
-    perm_prom_pssm_df['PSSM_Promoters_perm'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: calc_PSSM(x, type))
-    #add AA sequences
-    perm_prom_pssm_df['Promoters_perm_aa'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
+##    perm_prom_pssm_df['PSSM_Promoters_perm'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: calc_PSSM(x, type))
+    #calc PSSM. for 3 aa need to use frame to get the permutations for the original sequence
+    #calculate_pssm
 
+    perm_prom_pssm_df['PSSM_Promoters_perm'] = perm_prom_pssm_df.apply(lambda x: calc_PSSM(x['Promoters_perm_nt'], frame, type), axis = 1)
     perm_prom_pssm_df = perm_prom_pssm_df.reindex()
     perm_prom_pssm_df = perm_prom_pssm_df.sort_values(by = 'PSSM_Promoters_perm', ascending = False)
-    #return perm_prom_pssm_df["Promoters_perm_nt"], perm_prom_pssm_df['PSSM_Promoters_perm'], perm_prom_pssm_df['PSSM_Promoters_aa']
+    #add AA sequences
+    perm_prom_pssm_df['Promoters_perm_aa'] = perm_prom_pssm_df['Promoters_perm_nt'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
+    perm_prom_pssm_df['TSS'] = tss
+    perm_prom_pssm_df['frame'] = frame
+
+##    perm_prom_pssm_df = perm_prom_pssm_df.reindex()
+##    perm_prom_pssm_df = perm_prom_pssm_df.sort_values(by = 'PSSM_Promoters_perm', ascending = False)
+
     return perm_prom_pssm_df
-    #df = pd.Dataframe()
-    #df['aa_promoter'] = aa_promoter
-    #columns of different length
 
+# frame shift for the promoters: 0, 1, 2 - the remainder from the division
+#-35 and -10 6nt might be in different reading frames
+def find_frame_shift(gene_sequence, promoter_sequence, UP, hex35, spacer, hex10):
 
-def process_promoters_aa(df):
+    #find promoter sequence
+    pos_nt = gene_sequence.find(promoter_sequence)
 
-    aa_dic_json = json.load(open('PSSM_PromoterTool/pssm_aa_table.json'))
+    #get a sequence from the beginning till the end of the promoter
+    #cannot just search for hex35+spacer+hex10 - might be not unique
+    gene_sequence_prom = gene_sequence[0:pos_nt+len(promoter_sequence)]
+
+    pos_nt_35 = gene_sequence_prom.find(hex35+spacer+hex10)
+    frame_35 = pos_nt_35%3
+    pos_nt_10 = pos_nt_35 + len(hex35) + len(spacer)
+    frame_10 = pos_nt_10 % 3
+
+    return pd.Series({"frame35": frame_35,"frame10": frame_10})
+
+def recalculate_aa_promoter_sequence(promoter_sequence, hex35, spacer, hex10, frame35, frame10, gene_sequence):
+
+    new_promoter_35 = hex35
+    new_promoter_10 = hex10
+    new_spacer = spacer
+    full_prom_str = hex35+spacer+hex10
+    prom_pos = promoter_sequence.find(full_prom_str)
+    spacer_pos = promoter_sequence.find(spacer)
+    #pos without UP
+
+    if frame35 != 0:
+        new_pos35 = prom_pos - frame35
+        new_promoter_35 = promoter_sequence[new_pos35: new_pos35 + 9]
+    if frame10 !=0:
+        new_pos35 = prom_pos - frame35
+        new_pos10 = new_pos35 + len(hex35) + len(spacer) + frame35 - frame10
+        new_promoter_10 = promoter_sequence[new_pos10: new_pos10  + 9]
+            #new_promoter = str(Seq(new_promoter).translate(table = "Bacterial"))
+
+    new_promoter_35_aa = str(Seq(new_promoter_35).translate(table = "Bacterial"))
+    new_promoter_10_aa = str(Seq(new_promoter_10).translate(table = "Bacterial"))
+    return pd.Series({'recalc_AA_promoter_35':new_promoter_35_aa, 'recalc_AA_promoter_10': new_promoter_10_aa, 'recalc_nt_promoter_35': new_promoter_35, 'recalc_spacer': new_spacer, 'recalc_nt_promoter_10':new_promoter_10})
+
+def process_promoters_aa(df, tx_rate_df, direction_type):
+
+    aa_dic_json = json.load(open('pssm_aa_table.json'))
     #aa_dic = pd.read_json('PSSM_aa_table.json')
     aa_dic_df = pd.json_normalize(aa_dic_json['aminoAcids'])
 
-    #print(aa_dic_df.loc[aa_dic_df['shortCode'] == 'A']['codons'])
-    df_35_perm_prom = df['AA_Promoter_35'].apply(lambda x: findAllPromoterAAPermutations(x, aa_dic_df, '35'))
-    df_35_perm_prom = pd.concat(df_35_perm_prom.tolist())
+    #find if there is a frame shift
+    if direction_type == 'fwd':
+        sequence = tx_rate_df['sequence']
+    if direction_type == 'rev':
+        sequence = tx_rate_df['sequence_compl']
 
-    df_10_perm_prom = df['AA_Promoter_10'].apply(lambda x: findAllPromoterAAPermutations(x, aa_dic_df, '10'))
+    #update AA values for permutations based on the frame
+    #need to add 1 nt before and 2 after
+    frame_df = pd.DataFrame()
+    frame_df = df.apply(lambda x: find_frame_shift(sequence, x['promoter_sequence'], x['UP'], x['hex35'], x['spacer'], x['hex10']), axis = 1)
+    df = pd.concat([df, frame_df], axis = 1)
+    ##df[['recalc_AA_promoter_35'],['recalc_AA_promoter_10']] = df.apply(lambda x: recalculate_aa_promoter_sequence(x['UP'], x['hex35'], x['spacer'], x['hex10'], x['frame'], sequence), axis = 1)
+    df_recalc = df.apply(lambda x: recalculate_aa_promoter_sequence(x['promoter_sequence'], x['hex35'], x['spacer'], x['hex10'], x['frame35'], x['frame10'], sequence), axis = 1)
+    df = pd.concat([df, df_recalc], axis = 1)
+
+
+
+    #print(aa_dic_df.loc[aa_dic_df['shortCode'] == 'A']['codons'])
+    ##df_35_perm_prom = df['AA_Promoter_35'].apply(lambda x: findAllPromoterAAPermutations(x, aa_dic_df, '35', tx_rate_df))
+    df_35_perm_prom = df.apply(lambda x: findAllPromoterAAPermutations(x['recalc_AA_promoter_35'], aa_dic_df, '35', x['frame35'], tx_rate_df, x['TSS']), axis = 1)
+    df_35_perm_prom = pd.concat(df_35_perm_prom.tolist())
+    df_35_perm_prom = df_35_perm_prom.rename(columns={'frame': 'frame35'})
+
+
+    df_10_perm_prom = df.apply(lambda x: findAllPromoterAAPermutations(x['recalc_AA_promoter_10'], aa_dic_df, '10', x['frame10'], tx_rate_df, x['TSS']), axis = 1)
     df_10_perm_prom = pd.concat(df_10_perm_prom.tolist())
+    df_10_perm_prom = df_10_perm_prom.rename(columns={'frame': 'frame10'})
+
 
     df_35_perm_prom = df_35_perm_prom.drop_duplicates()
     df_10_perm_prom = df_10_perm_prom.drop_duplicates()
-    #print(len(df_35_perm_prom))
-    #print(len(df_10_perm_prom))
-    #for idx, prm_row in df.iterrows():
-    #    pssm_prom_35 = findAllPromoterAAPermutations(df['Promoters_35'], '35')
-    #    pssm_prom_10 = findAllPromoterAAPermutations(df['10'], '10')
-
-
-
-    # for idx, prm_row in df.iterrows():
-    #     print(prm_row['Promoters_35'])
-    #     promoter_35_nt = Seq(prm_row['Promoters_35'])
-    #     promoter_10_nt = Seq(prm_row['Promoters_10'])
-    #     print("35 = " + promoter_35_nt + ", 10 = " + promoter_10_nt)
-
-        #df['protein'] = df['DNA'].apply(lambda x: Seq(x).translate(), axis=1)
-        #df['protein'] = [''.join(Seq(sq).translate()) for sq in df['DNA']]
 
     return df_35_perm_prom, df_10_perm_prom
 
-def findAllPromoterAAPermutations1(AA_promoter):
 
-    # firstAA = AA_promoter[0]
-    # secondAA = AA_promoter[1]
-    # var firstCodons = firstCodonAA.codons;
-    #
-    # var secondCodon = arrCodons[1].codonValue;
-    # var secondCodonAA = findAllAAbyCodon(secondCodon);
-    # var secondCodons = secondCodonAA.codons;
-    #
-    # for (let c1 in firstCodons) {
-    #     for (let c2 in secondCodons) {
-    #         var tmpPromoter = firstCodons[c1] + secondCodons[c2];
-    #         tmpPromoterArr.push({ promoter: tmpPromoter, boxType });
-    #     }
-    # }
-    #
-    # return tmpPromoterArr;
-    return
 #row has the original promoter
 def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_df):
-    new_prom_sequence = row_5['hex35'] + str(row['spacer']) + row_5['hex10']
+
+    #restore original 9 nt promoter and spacer if frames are not 0 to replace it with new 9 nt promoters
+    frame35 = row_5['frame35']
+    frame10 = row_5['frame10']
+    spacer = row['spacer']
+    prev_hex35 = row['hex35']
+    prev_hex10 = row['hex10']
+    row_5_hex35 = row_5['hex35']
+    row_5_hex10 = row_5['hex10']
+    new_hex35_6nt = row_5['hex35']
+    new_hex10_6nt = row_5['hex10']
+
+    old_prom_sequence_hex = prev_hex35 + str(row['spacer']) + prev_hex10
+    pos_35 = original_prom_sequence.find(old_prom_sequence_hex)
+
+    #get 6nt from new -35 and 10 promoters if there're frames
+    if frame35 != 0:
+        if frame35 == 2:
+            new_hex35_6nt = new_hex35_6nt[2:2+6]
+        if frame35 == 1:
+            new_hex35_6nt = new_hex35_6nt[1:1+6]
+
+    if frame10 != 0:
+        if frame10 == 2:
+            new_hex10_6nt = new_hex10_6nt[2:2+6]
+        if frame10 == 1:
+            new_hex10_6nt = new_hex10_6nt[1:1+6]
+
+
+    prev_hex35 = row['hex35_9nt']
+    prev_hex10 = row['hex10_9nt']
+    spacer = row['spacer_9nt']
+    prev_prom_seq = prev_hex35+spacer+prev_hex10
+    new_prom_seq = row_5_hex35+spacer+row_5_hex10
+
+    new_promoter_seq = original_prom_sequence.replace(prev_prom_seq, new_prom_seq)
+
+
+
+    #aa sequence of promoters do not match here because of the frame!
+
+    ##new_prom_sequence_hex = row_5['hex35'] + str(row['spacer']) + row_5['hex10']
+    ##old_prom_sequence_hex = row['hex35'] + str(row['spacer']) + row['hex10']
     sequence = tx_rate_df["sequence"]
     sequence_compl = tx_rate_df["sequence_compl"]
 
@@ -566,14 +613,24 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     #     new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
 
     if(dir_type == 'fwd'):
-        new_sequence = sequence.replace(original_prom_sequence, new_prom_sequence)
+        ##new_prom_sequence = original_prom_sequence.replace(old_prom_sequence_hex, new_prom_sequence_hex)
+        new_sequence = sequence.replace(prev_prom_seq, new_prom_seq)
     if(dir_type == 'rev'):
-        new_sequence = sequence_compl.replace(original_prom_sequence, new_prom_sequence)
+        ##new_prom_sequence = original_prom_sequence.replace(old_prom_sequence_hex, new_prom_sequence_hex)
+        new_sequence = sequence_compl.replace(prev_prom_seq, new_prom_seq)
+        sequence = sequence_compl
+
+    new_sequence_aa = str(Seq(new_sequence).translate(table = "Bacterial"))
+    sequence_aa = str(Seq(sequence).translate(table = "Bacterial"))
+
+    # if(new_sequence_aa != sequence_aa):
+    #     print("ERROR: sequences are not matching, TSS =" + str(row['TSS']))
+    # else:
+    #     print("TSS = " + str(row['TSS']) + " matching")
 
     TSS_new_res = pd.DataFrame()
 
 
-    #print('run salis calc')
     calc = Promoter_Calculator()
     calc.run(new_sequence, TSS_range=[0, len(new_sequence)])
     fwd_new_res, rev_new_res = calc.output()
@@ -588,18 +645,23 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
         #TSS_new_res = TSS_new_res.loc[TSS_new_res['Tx_rate'].astype(float) > float(tx_rate_df['min_fwd'])]
         TSS_new_res = fwd_new_res.loc[fwd_new_res['Tx_rate'].astype(float) < float(row['Tx_rate'])]
 
-
-    # print(TSS_new_res['Tx_rate'])
-
-    #filter by Tx_rate TODO
-
-
     # filter by substitution promoters only + ITR
-    match_TSS_df = TSS_new_res.loc[TSS_new_res['hex35'] == row_5['hex35']]
-    match_TSS_df = match_TSS_df.loc[TSS_new_res['hex10'] == row_5['hex10']]
+    #compare 6nt and the original spacer
+    #match_TSS_df = TSS_new_res.loc[TSS_new_res['hex35'] == row_5['hex35']]
+    match_TSS_df = TSS_new_res.loc[TSS_new_res['hex35'] == new_hex35_6nt]
+    #match_TSS_df = match_TSS_df.loc[TSS_new_res['hex10'] == row_5['hex10']]
+    match_TSS_df = match_TSS_df.loc[TSS_new_res['hex10'] == new_hex10_6nt]
     match_TSS_df = match_TSS_df.loc[TSS_new_res['ITR'] == row['ITR']]
+    ##match_TSS_df = match_TSS_df.loc[TSS_new_res['UP'] == row['UP']]
     match_TSS_df = match_TSS_df.loc[TSS_new_res['spacer'] == row['spacer']]
 
+    #if no matching records, then the promoters are silenced
+    if len(match_TSS_df) == 0 and range == 'min':
+        match_TSS_df = row.to_frame().T
+        match_TSS_df['Tx_rate'] = 0.1
+        match_TSS_df['hex35'] = new_hex35_6nt
+        match_TSS_df['hex10'] = new_hex10_6nt
+        ##print("NO MATCHES")
 
     match_TSS_df['Type'] = 'Modified Promoter'
     match_TSS_df['direction'] = dir_type
@@ -609,24 +671,52 @@ def run_salis_calc(row, row_5, original_prom_sequence, dir_type, range, tx_rate_
     match_TSS_df['ID'] = row['TSS']
     match_TSS_df['TSS'] = row['TSS']
     match_TSS_df['new_gene_sequence'] = new_sequence
+    match_TSS_df['hex35_9nt'] = row_5_hex35
+    match_TSS_df['hex10_9nt'] = row_5_hex10
 
+    ##print("hex 35 = " + match_TSS_df['hex35'] + " , hex10 = " + match_TSS_df['hex10'])
     match_TSS_df['AA_Promoter_35'] = match_TSS_df['hex35'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
     match_TSS_df['AA_Promoter_10'] = match_TSS_df['hex10'].apply(lambda x: str(Seq(x).translate(table = "Bacterial")))
 
+    #add frames
+    match_TSS_df['frame'] = str(int(frame35) + 1)
 
-    #TSS_res_df = TSS_res_df.append(match_TSS_df, ignore_index=True, sort=False)
     return match_TSS_df
 
+def get_9nt_promoter(frame35, frame10, hex35, hex10, spacer, sequence):
+
+    prom_sequence_hex = hex35 + spacer + hex10
+    pos_35 = sequence.find(prom_sequence_hex)
+    new_spacer = spacer
+
+    prev_hex35_9nt = hex35
+    prev_hex10_9nt = hex10
+    if frame35 != 0:
+        if frame35 == 2:
+            new_spacer = spacer[ 1:]
+        if frame35 == 1:
+            new_spacer = spacer[ 2:]
+
+        prev_hex35_9nt = sequence[pos_35-frame35:pos_35-frame35 + 9]
+        prev_hex35 = prev_hex35_9nt
+
+    if frame10 != 0:
+        if frame10 == 2:
+            new_spacer = spacer[:-1]
+        if frame10 == 1:
+            new_spacer = spacer[:-2]
+
+        pos_10 = pos_35 + len(hex35) + len(spacer) - frame10
+        prev_hex10_9nt = sequence[pos_10: pos_10 + 9]
+
+    return prev_hex35_9nt, new_spacer, prev_hex10_9nt
 def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_rate_df):
     #print(row)
 
     TSS_res_df = pd.DataFrame()
-    prom_35_aa_str = str(row['AA_Promoter_35'])
-    prom_10_aa_str = str(row['AA_Promoter_10'])
-    match_35_promoters_df = df_35_perm_prom.loc[df_35_perm_prom['Promoters_perm_aa'].values == prom_35_aa_str]
-    match_10_promoters_df = df_10_perm_prom.loc[df_10_perm_prom['Promoters_perm_aa'].values == prom_10_aa_str]
-    match_35_promoters_df['ID'] = row['TSS']
-    match_10_promoters_df['ID'] = row['TSS']
+    match_35_promoters_df = df_35_perm_prom.loc[df_35_perm_prom['TSS'].values == row['TSS']]
+    match_10_promoters_df = df_10_perm_prom.loc[df_10_perm_prom['TSS'].values == row['TSS']]
+
 
     match_35_promoters_df = match_35_promoters_df.rename(columns={'Promoters_perm_nt': 'hex35'})
     match_35_promoters_df = match_35_promoters_df.rename(columns={'PSSM_Promoters_perm': 'PSSM_Promoters_perm_35'})
@@ -637,23 +727,22 @@ def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_r
     match_10_promoters_df = match_10_promoters_df.rename(columns={'Promoters_perm_aa': 'PSSM_Promoters_perm_aa_10'})
 
     # top_promoters_df = pd.concat([match_35_promoters_df_5, match_35_promoters_df_5], ignore_index=True, axis = 1)
-    top_promoters_df = match_35_promoters_df.merge(match_10_promoters_df, on=["ID"])
-    top_promoters_df = top_promoters_df[['hex35', 'hex10', 'PSSM_Promoters_perm_10', 'PSSM_Promoters_perm_35']].copy()
+    top_promoters_df = match_35_promoters_df.merge(match_10_promoters_df, on=["TSS"])
+    top_promoters_df = top_promoters_df[['TSS', 'frame35', 'frame10', 'hex35', 'hex10', 'PSSM_Promoters_perm_10', 'PSSM_Promoters_perm_35']].copy()
     top_promoters_df = top_promoters_df.drop_duplicates()
 
+    #specify how many combinations of promoters will be run: min = 20 (by default) or all (might take long time)
     if range == 'max':
-        top_promoters_df = top_promoters_df.head(10)
-        #top_promoters_df = top_promoters_df.tail(10)
+        top_promoters_df = top_promoters_df.head(20)
+
     if range == 'min':
-        top_promoters_df = top_promoters_df.tail(10)
-        #top_promoters_df = top_promoters_df.head(10)
+        top_promoters_df = top_promoters_df.tail(20)
+
 
     # ORIGINAL VALUES
-    original_prom_sequence = str(row['hex35']) + str(row['spacer']) + str(row['hex10'])
+    original_prom_sequence = str(row['promoter_sequence'])
     original_TSS = row['Tx_rate']
-    #print("ORIGINAL VALUES")
-    #print('original TSS: ' + str(original_TSS) + ', original promoters: -35:' + row['hex35'] + ' 35_AA' + row[
-    #    'AA_Promoter_35'] + ', -10:' + str(row['hex10']) + ', aa_10 ' + 'AA_Promoter_10')
+
     row['Type'] = 'Original Promoter'
     row['direction'] = dir_type
     row['ID'] = row['TSS']
@@ -661,7 +750,17 @@ def match_promoters(row, df_35_perm_prom, df_10_perm_prom, dir_type, range, tx_r
         row['new_gene_sequence'] = tx_rate_df['sequence']
     elif dir_type == 'rev':
         row['new_gene_sequence'] = tx_rate_df['sequence_compl']
-    #TSS_res_df =TSS_res_df.append(row)
+
+    row_frame = find_frame_shift(row['new_gene_sequence'], row['promoter_sequence'], row['UP'], row['hex35'], row['spacer'], row['hex10'])
+    row['frame35'] = row_frame['frame35']
+    row['frame10'] = row_frame['frame10']
+    row['frame'] = str(row['frame35'] + 1)
+
+    new_hex35, new_spacer, new_hex10 =  get_9nt_promoter(row_frame['frame35'], row_frame['frame10'], row['hex35'], row['hex10'], row['spacer'], row['new_gene_sequence'])
+    row['hex35_9nt'] = new_hex35
+    row['hex10_9nt'] = new_hex10
+    row['spacer_9nt'] = new_spacer
+
     TSS_res_df = pd.concat([TSS_res_df, row.to_frame().T], ignore_index=True, axis = 0)
 
     # SUBSTITUTIONS
@@ -707,20 +806,6 @@ def substitute_promoters(TSS_top_df, df_35_perm_prom, df_10_perm_prom, dir_type,
     TSS_res_df = TSS_res_df.reset_index(drop=True)
     TSS_res_df = TSS_res_df.drop(TSS_res_df[TSS_res_df.aa_new_gene_sequence != aa_orig_sequence].index)
 
-    #     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
-
-    #TSS_res_df_rem = TSS_top_df.apply(lambda x: str(Seq(x).translate())
-
-    #for idx, row in TSS_top_df.iterrows():
-
-        #for i, row_5 in top_primers_df.iterrows():
-
-        #tss_fwd_df = tss_fwd_df.sort_values(by = 'Tx_rate', ascending = False)
-    #tss_rev_df = tss_rev_df.sort_values(by = 'Tx_rate', ascending = False)
-
-#    print(tss_fwd_df.head(5)['hex35'])
-#    print(tss_rev_df.head(5)['hex10'])
-
     return TSS_res_df
 
 def TSS_results_to_df(result):
@@ -765,15 +850,15 @@ def process_TSS_results(TSS, result):
 def process_df_promoters(df, direction_type, type, tx_rate_df):
     #deal with synonymous codon changes
     # we need to add all synonymous codon combination for -35 and -10, then calculate their PSSM
-    df_35_perm_prom_top, df_10_perm_prom_top = process_promoters_aa(df)
+    df_35_perm_prom, df_10_perm_prom = process_promoters_aa(df, tx_rate_df, direction_type)
 
-    df_35_perm_prom_top = df_35_perm_prom_top.drop_duplicates()
-    df_10_perm_prom_top = df_10_perm_prom_top.drop_duplicates()
+    df_35_perm_prom = df_35_perm_prom.drop_duplicates()
+    df_10_perm_prom = df_10_perm_prom.drop_duplicates()
 
-    df_35_perm_prom_top = df_35_perm_prom_top.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
-    df_10_perm_prom_top = df_10_perm_prom_top.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
+    df_35_perm_prom = df_35_perm_prom.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
+    df_10_perm_prom = df_10_perm_prom.sort_values(by=['PSSM_Promoters_perm'], ascending=False)
 
-    res_df = substitute_promoters(df, df_35_perm_prom_top, df_10_perm_prom_top, direction_type, type, tx_rate_df)
+    res_df = substitute_promoters(df, df_35_perm_prom, df_10_perm_prom, direction_type, type, tx_rate_df)
 
     #rename ID to Parent_ID column
     res_df = res_df.rename(columns={'ID': 'Parent_ID'})
@@ -790,7 +875,7 @@ def calc_tx_rate_fold(df, res_row, range):
         if range == 'max':
             tx_rate_fold =  round((child_tx_rate/parent_tx_rate),2)
         if range == 'min':
-            tx_rate_fold = round((parent_tx_rate/child_tx_rate), 2)
+            tx_rate_fold = -abs(round((parent_tx_rate/child_tx_rate), 2))
 
     return tx_rate_fold
 
@@ -803,51 +888,3 @@ def add_txrate_foldchange_col(df, range):
 
     df_copy['Tx_rate_FoldChange'] = df_copy.apply(lambda x: calc_tx_rate_fold(df, x, range), axis = 1)
     return df_copy
-
-# def show_output(output_file, final_df, direction, type, max_min_df, new_min_fwd_Tx_rate, new_min_fwd_Tx_rate):
-#
-#     column_list = ["new_sequence", "promoter_sequence", "TSS", "Tx_rate", "UP", "hex35", "PSSM_hex35", "AA_hex35", "spacer", "hex10", "PSSM_hex10", "AA_hex10", "disc", "ITR", "dG_total", "dG_10", "dG_35", "dG_disc", "dG_ITR", "dG_ext10", "dG_spacer", "dG_UP", "dG_bind",  "UP_position", "hex35_position", "spacer_position", "hex10_position", "disc_position"]
-#
-#     res_final_df_max_fwd_df = res_final_df_max.loc[res_final_df_max["direction"] == 'fwd']
-#     new_max_fwd_Tx_rate_df = res_final_df_max_fwd_df.sort_values(by='Tx_rate', ascending=False)
-#     new_max_fwd_Tx_rate = new_max_fwd_Tx_rate_df['Tx_rate'].head(1).values[0]
-#
-#
-#     dir = ""
-#     action = ""
-#     max_min = ""
-#
-#     if direction == 'fwd':
-#         dir = "forward"
-#
-#     if direction == 'rev':
-#         dir = "reverse"
-#
-#     if type == "max":
-#         action = "increased"
-#         max_min = "maximum"
-#
-#         if direction == 'rev':
-#             def_rev_max_tx_rate = max_min_df['max_rev']
-#         if direction == 'fwd':
-#             def_rev_max_tx_rate = max_min_df['max_fwd']
-#
-#     if type == "min":
-#         action = "decreased"
-#         max_min = "minimum"
-#
-#         if direction == 'rev':
-#             def_rev_max_tx_rate = max_min_df['min_rev']
-#         if direction == 'fwd':
-#             def_rev_max_tx_rate = max_min_df['min_fwd']
-#
-#
-#     print("The " + max_min + " transcription rate for the sequence (" + dir + ") " + str(def_rev_max_tx_rate))
-#     if len(final_df) > 1:
-#         if float(new_max_rev_Tx_rate) > float(def_rev_max_tx_rate):
-#             print ("can be " + action + " up to " + str(new_max_rev_Tx_rate))
-#             print("using the following promoters:")
-#             res_final_df_max_fwd_df.to_csv(output_file, columns = column_list)
-#
-#     else:
-#         print(" cannot be further increased")
