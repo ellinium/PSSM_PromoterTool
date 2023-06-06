@@ -519,7 +519,7 @@ def recalculate_aa_promoter_sequence(promoter_sequence, hex35, spacer, hex10, fr
 
 def process_promoters_aa(df, tx_rate_df, direction_type):
 
-    aa_dic_json = json.load(open('pssm_aa_table.json'))
+    aa_dic_json = json.load(open('PSSM_PromoterTool/pssm_aa_table.json'))
     #aa_dic = pd.read_json('PSSM_aa_table.json')
     aa_dic_df = pd.json_normalize(aa_dic_json['aminoAcids'])
 
