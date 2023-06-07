@@ -8,16 +8,12 @@
 #add original record info and all synonymous outputs into a csv file
 
 
-import util, random, sys, pickle, collections, operator, itertools, time, math, os
-from collections import defaultdict
+import util, pickle, collections, operator, itertools, time, math, os
 import numpy as np
 import pandas as pd
 import json
-from decimal import *
 from datetime import datetime
 from Bio.Seq import Seq
-from ast import literal_eval
-import pssm_util as pu
 import dask.dataframe as dd
 
 #import multiprocessing

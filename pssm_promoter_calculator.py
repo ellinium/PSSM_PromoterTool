@@ -115,11 +115,11 @@ if __name__ == "__main__":
     ##rev_res_df_min = pssm_util.process_df_promoters(rev_TSS_df, 'rev', 'min', max_min_tx_rate_df)
 
     print("Maximising transcription rate on the forward strand..")
-    fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df.tail(10), 'fwd', 'max', max_min_tx_rate_df)
+    fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df.head(10), 'fwd', 'max', max_min_tx_rate_df)
     ##fwd_res_df_max = pssm_util.process_df_promoters(fwd_TSS_df, 'fwd', 'max', max_min_tx_rate_df)
 
     print("Maximising transcription rate on the reverse strand..")
-    rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df.tail(10), 'rev', 'max', max_min_tx_rate_df)
+    rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df.head(10), 'rev', 'max', max_min_tx_rate_df)
     ##rev_res_df_max = pssm_util.process_df_promoters(rev_TSS_df, 'rev', 'max', max_min_tx_rate_df)
 
 
