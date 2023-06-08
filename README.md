@@ -2,9 +2,9 @@
 
 The tool applies CORPSE (Codon Restrained Promoter Silencing) method and inverted CORPSE (iCORPSE) to the provided gene sequence.
 
--35 and -10 promoters along with the additional non-canonical sequence motifs are predicted based on the Salis Lab Promoter Calculator (https://github.com/hsalis/SalisLabCode/tree/master/Promoter_Calculator).
+-35 and -10 promoters, along with the additional non-canonical sequence motifs, are predicted based on the Salis Lab Promoter Calculator (https://github.com/hsalis/SalisLabCode/tree/master/Promoter_Calculator).
 Position-specific scoring matrix (PSSM) is applied to all the synonymous codon variants of the promoters associated with the lowest and highest transcription rates in order to maximally decrease (CORPSE) or increase the transcription rate (iCORPSE).
-The output CSV file/files contain synonymous codon promoters and sequence motifs for the minimal and maximal transcriptional rates along with the non-canonical sequence motifs for forward and reverse strands.
+The output CSV file/files contain synonymous codon promoters and sequence motifs for the minimal and maximal transcriptional rates, along with the non-canonical sequence motifs for forward and reverse strands.
 
 For a web (Google Colab) version, please navigate to https://colab.research.google.com/drive/171iBNCrA1hMS-LpX_qaFani34HiueTZO?usp=sharing.
 
@@ -20,13 +20,13 @@ Or use
 ```
 git clone https://github.com/ellinium/pssm-promoter-tool
 ```
-[! you need to have a Git account and be authorised in the system to run the command !]
+[! it's necessary to have a Git account and be authorised in the system to run the command !]
 
 
 USAGE:
 
 The tool requires a text or fasta file with a nucleotide sequence of a gene to process.
-From the folder with the downloaded files run:
+From the folder with the downloaded files, run:
 ```
 python pssm_promoter_calculator.py <file_name>
 ```
@@ -70,7 +70,7 @@ The output file fields in the CSV files contain data from Salis' Promoter calcul
 22) dG_35 - Gibbs binding free Energy for -35 hexamer (kcal/mol)
 23) dG_disc - Gibbs free energy penalty for non-optimal discriminator element (kcal/mol)
 24) dG_ITR - Gibbs free energy change for R-loop formation at the initial transcribed region (kcal/mol)
-25) dG_ext10 - Gibbs binding free Energy for the extended -10 hexamer (kcal/mol)
+25) dG_ext10 - Gibbs binding free energy for the extended -10 hexamer (kcal/mol)
 26) dG_spacer - Gibbs free energy penalty for non-optimal spacing (kcal/mol)
 27) dG_UP - Gibbs binding free energy for the upstream element (kcal/mol)
 28) dG_bind - binding Gibbs free energy 
